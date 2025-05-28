@@ -6,7 +6,7 @@ export default function Dashboard() {
 
     return (
         <div>
-            <h2>Hello {user?.role}</h2>
+            <h2>Hello {user?.name}</h2>
             <button onClick={logout}>Logout</button>
         </div>
     );

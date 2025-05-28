@@ -27,7 +27,7 @@ export default function TxtToExcel() {
     };
 
     const exportToExcel = () => {
-        const worksheet = XLSX.utils.aoa_to_sheet([['Employee_ID', 'Date', 'Time'], ...rawData]);
+        const worksheet = XLSX.utils.aoa_to_sheet([['Employee_No', 'Date', 'Time'], ...rawData]);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
         XLSX.writeFile(workbook, 'Refactored Attendance.xlsx');
@@ -44,7 +44,7 @@ export default function TxtToExcel() {
                     <table className="table-auto border-collapse border border-gray-400">
                         <thead>
                             <tr>
-                                <th className="border border-gray-300 px-2">Employee_ID</th>
+                                <th className="border border-gray-300 px-2">Employee_No</th>
                                 <th className="border border-gray-300 px-2">Date</th>
                                 <th className="border border-gray-300 px-2">Time</th>
                             </tr>
