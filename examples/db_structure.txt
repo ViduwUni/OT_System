@@ -1,0 +1,15 @@
+employee_no
+employee_name
+date
+inTime
+outTime
+ot_normal_hours
+ot_double_hours
+ot_triple_hours
+productionSupervisor_approved_hours
+reason
+productionManager_approval
+hrManager_final_approval
+isNightShift
+createdAt
+updatedAt
