@@ -18,7 +18,7 @@ export default function SideBar() {
                 <li><Link to="/employeeManagement">Employees</Link></li>
                 <li><Link to="/overtimeList">Overtime List</Link></li>
                 <li><Link to="/overtimeForm">Overtime Form</Link></li>
-                <li><Link to="/groupedApproval">Overtime Approval</Link></li>
+                <li><Link to="/monthlyReport">Monthly Report</Link></li>
             </ul>
             <button onClick={logout}>Logout</button>
         </div>

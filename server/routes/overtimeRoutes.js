@@ -2,9 +2,7 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/overtimeController');
 
-router.get('/grouped', controller.grouped);
-router.get('/approval', controller.approval);
-router.post('/approval', controller.approval); 
+router.get("/monthly-report", controller.getMonthlyOTReport);
 
 router.post('/', controller.createOvertimeEntry);
 router.get('/', controller.getAllOvertimeEntries);

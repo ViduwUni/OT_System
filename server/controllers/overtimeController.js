@@ -1,5 +1,4 @@
 const OvertimeEntry = require('../models/OvertimeEntry');
-const OvertimeApproval = require("../models/OvertimeApproval");
 
 // Create a new entry
 exports.createOvertimeEntry = async (req, res) => {
@@ -59,72 +58,73 @@ exports.deleteOvertimeEntry = async (req, res) => {
     }
 };
 
-// Grouped entry aggregation
-exports.grouped = async (req, res) => {
-    const period = req.query.period || "week";
-
-    let groupStage;
-    if (period === "month") {
-        groupStage = {
-            _id: {
-                employee_no: "$employee_no",
-                year: { $year: "$date" },
-                month: { $month: "$date" }
-            },
-            total_ot_normal_hours: { $sum: "$ot_normal_hours" },
-            total_ot_double_hours: { $sum: "$ot_double_hours" },
-            total_ot_triple_hours: { $sum: "$ot_triple_hours" },
-            count: { $sum: 1 }
-        };
-    } else {
-        groupStage = {
-            _id: {
-                employee_no: "$employee_no",
-                year: { $year: "$date" },
-                week: { $week: "$date" }
-            },
-            total_ot_normal_hours: { $sum: "$ot_normal_hours" },
-            total_ot_double_hours: { $sum: "$ot_double_hours" },
-            total_ot_triple_hours: { $sum: "$ot_triple_hours" },
-            count: { $sum: 1 }
-        };
-    }
-
+// Get monthly OT report
+exports.getMonthlyOTReport = async (req, res) => {
     try {
-        const groupedData = await OvertimeEntry.aggregate([
-            { $match: { date: { $type: "date" } } },
-            { $group: groupStage },
+        const { month } = req.query; // format: YYYY-MM
+        if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+            return res.status(400).json({ error: 'Invalid or missing month parameter (YYYY-MM)' });
+        }
+
+        const [year, monthNum] = month.split('-').map(Number);
+
+        const startDate = new Date(year, monthNum - 1, 1);
+        const endDate = new Date(year, monthNum, 1); // exclusive
+
+        const results = await OvertimeEntry.aggregate([
+            {
+                $match: {
+                    date: {
+                        $gte: startDate,
+                        $lt: endDate
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    year: { $year: "$date" },
+                    month: { $month: "$date" }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        employee_no: "$employee_no",
+                        employee_name: "$employee_name",
+                        year: { $year: "$date" },
+                        month: { $month: "$date" }
+                    },
+                    total_ot_normal_hours: { $sum: "$ot_normal_hours" },
+                    total_ot_double_hours: { $sum: "$ot_double_hours" },
+                    total_ot_triple_hours: { $sum: "$ot_triple_hours" },
+                    total_confirmed_hours: { $sum: "$confirmed_hours" },
+                    entries: { $push: "$$ROOT" }
+                }
+            },
             {
                 $sort: {
-                    "_id.employee_no": 1,
-                    "_id.year": 1,
-                    ...(period === "month" ? { "_id.month": 1 } : { "_id.week": 1 }),
+                    "_id.employee_no": 1
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    employee_no: "$_id.employee_no",
+                    employee_name: "$_id.employee_name",
+                    year: "$_id.year",
+                    month: "$_id.month",
+                    total_ot_normal_hours: 1,
+                    total_ot_double_hours: 1,
+                    total_ot_triple_hours: 1,
+                    total_confirmed_hours: 1,
+                    entries: 1
                 }
             }
         ]);
-        res.json(groupedData);
+
+        res.json(results);
     } catch (err) {
-        console.error("Aggregation error:", err.stack || err);
-        res.status(500).json({ message: "Failed to fetch grouped overtime", error: err.message });
-    }
-};
-
-// Approval/upsert grouped overtime
-exports.approval = async (req, res) => {
-    const { employee_no, period_type, period_value, confirmed_hours, approval_stage } = req.body;
-
-    if (!employee_no || !period_type || !period_value) {
-        return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    try {
-        const approvalDoc = await OvertimeApproval.findOneAndUpdate(
-            { employee_no, period_type, period_value },
-            { confirmed_hours, approval_stage, updatedAt: new Date() },
-            { upsert: true, new: true }
-        );
-        res.json(approvalDoc);
-    } catch (err) {
-        res.status(500).json({ message: "Failed to update approval", error: err.message });
+        console.error(err);
+        res.status(500).json({ error: err.message });
     }
 };

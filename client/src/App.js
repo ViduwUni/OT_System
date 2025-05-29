@@ -9,7 +9,7 @@ import TxtToExcel from './utils/TxtToExcel';
 import EmployeeManagement from './pages/EmployeeManagement';
 import OvertimeList from './components/OvertimeList';
 import OvertimeForm from './components/OvertimeForm';
-import GroupedOvertimeApproval from './pages/GroupedOvertimeApproval';
+import MonthlyReport from './pages/MonthlyReport';
 
 function App() {
   return (
@@ -49,9 +49,9 @@ function App() {
             </PrivateRoute>
           }
           />
-          <Route path="/groupedApproval" element={
+          <Route path="/monthlyReport" element={
             <PrivateRoute>
-              <GroupedOvertimeApproval />
+              <MonthlyReport />
             </PrivateRoute>
           }
           />

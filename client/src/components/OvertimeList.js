@@ -13,16 +13,13 @@ function OvertimeList() {
     const [editForm, setEditForm] = useState({});
     const [employees, setEmployees] = useState([]);
 
-    // Filter states
     const [filterEmployee, setFilterEmployee] = useState("");
-    const [filterPeriod, setFilterPeriod] = useState("daily"); // daily, monthly, yearly
+    const [filterPeriod, setFilterPeriod] = useState("daily");
     const [filterDate, setFilterDate] = useState(() => {
-        // default today date in yyyy-MM-dd format
         const d = new Date();
         return d.toISOString().slice(0, 10);
     });
 
-    // Load overtime entries
     const fetchEntries = async () => {
         setLoading(true);
         try {
@@ -36,19 +33,14 @@ function OvertimeList() {
         }
     };
 
-    // Load employees for dropdown (for employee_no edit and filter)
     useEffect(() => {
-        axios
-            .get(EMPLOYEE_API)
-            .then((res) => setEmployees(res.data))
-            .catch(() => { });
+        axios.get(EMPLOYEE_API).then((res) => setEmployees(res.data)).catch(() => { });
     }, []);
 
     useEffect(() => {
         fetchEntries();
     }, []);
 
-    // Convert ISO datetime string to a local datetime string compatible with input[type=datetime-local]
     function toLocalDatetime(isoString) {
         if (!isoString) return "";
         const dt = new Date(isoString);
@@ -66,7 +58,6 @@ function OvertimeList() {
         );
     }
 
-    // Begin editing a row
     const startEdit = (entry) => {
         setEditId(entry._id);
         setEditForm({
@@ -77,23 +68,25 @@ function OvertimeList() {
             outTime: toLocalDatetime(entry.outTime),
             isNightShift: entry.isNightShift,
             reason: entry.reason || "",
+            confirmed_hours: entry.confirmed_hours || 0,
+            approval_stage: entry.approval_stage || "pending",
+            ot_normal_hours: entry.ot_normal_hours || 0,
+            ot_double_hours: entry.ot_double_hours || 0,
+            ot_triple_hours: entry.ot_triple_hours || 0,
         });
     };
 
-    // Cancel editing
     const cancelEdit = () => {
         setEditId(null);
         setEditForm({});
     };
 
-    // Handle changes in edit inputs
     const handleEditChange = (e) => {
         const { name, value, type, checked } = e.target;
         let val = type === "checkbox" ? checked : value;
 
         let updatedForm = { ...editForm, [name]: val };
 
-        // If employee_no changes, update employee_name automatically
         if (name === "employee_no") {
             const emp = employees.find((emp) => emp.employee_no === val);
             updatedForm.employee_name = emp ? emp.employee_name : "";
@@ -102,26 +95,19 @@ function OvertimeList() {
         setEditForm(updatedForm);
     };
 
-    // Convert local datetime string (from input) to ISO string for backend
     function localDatetimeToISO(localDatetimeStr) {
         if (!localDatetimeStr) return null;
-        // The localDatetimeStr is like "2025-05-29T14:30"
-        // Date constructor treats it as UTC, but we want local time
-        // So parse components manually:
         const [datePart, timePart] = localDatetimeStr.split("T");
         if (!datePart || !timePart) return null;
 
         const [year, month, day] = datePart.split("-").map(Number);
         const [hour, minute] = timePart.split(":").map(Number);
 
-        // Create a Date object in local timezone
         const dt = new Date(year, month - 1, day, hour, minute);
         return dt.toISOString();
     }
 
-    // Save edited row
     const saveEdit = async () => {
-        // Basic validation
         if (
             !editForm.employee_no ||
             !editForm.employee_name ||
@@ -137,27 +123,22 @@ function OvertimeList() {
             const payload = {
                 employee_no: editForm.employee_no,
                 employee_name: editForm.employee_name,
-                date: new Date(editForm.date).toISOString(), // date only in ISO format
+                date: new Date(editForm.date).toISOString(),
                 inTime: localDatetimeToISO(editForm.inTime),
                 outTime: localDatetimeToISO(editForm.outTime),
                 isNightShift: editForm.isNightShift,
                 reason: editForm.reason,
+                confirmed_hours: Number(editForm.confirmed_hours),
+                approval_stage: editForm.approval_stage,
+                ot_normal_hours: Number(editForm.ot_normal_hours),
+                ot_double_hours: Number(editForm.ot_double_hours),
+                ot_triple_hours: Number(editForm.ot_triple_hours),
             };
+
             await axios.put(`${API_BASE}/${editId}`, payload);
 
-            // Update local state to reflect changes
             setEntries((prev) =>
-                prev.map((e) =>
-                    e._id === editId
-                        ? {
-                            ...e,
-                            ...payload,
-                            date: editForm.date, // keep string date for display
-                            inTime: editForm.inTime,
-                            outTime: editForm.outTime,
-                        }
-                        : e
-                )
+                prev.map((e) => (e._id === editId ? { ...e, ...payload } : e))
             );
             cancelEdit();
         } catch {
@@ -175,16 +156,13 @@ function OvertimeList() {
         }
     };
 
-    // Filtering logic
     useEffect(() => {
         let filtered = [...entries];
 
-        // Filter by employee if selected
         if (filterEmployee) {
             filtered = filtered.filter((e) => e.employee_no === filterEmployee);
         }
 
-        // Filter by period & date
         if (filterDate) {
             const filterDt = new Date(filterDate);
 
@@ -192,20 +170,17 @@ function OvertimeList() {
                 const entryDate = new Date(e.date);
 
                 if (filterPeriod === "daily") {
-                    // Match year, month, day
                     return (
                         entryDate.getFullYear() === filterDt.getFullYear() &&
                         entryDate.getMonth() === filterDt.getMonth() &&
                         entryDate.getDate() === filterDt.getDate()
                     );
                 } else if (filterPeriod === "monthly") {
-                    // Match year & month
                     return (
                         entryDate.getFullYear() === filterDt.getFullYear() &&
                         entryDate.getMonth() === filterDt.getMonth()
                     );
                 } else if (filterPeriod === "yearly") {
-                    // Match year only
                     return entryDate.getFullYear() === filterDt.getFullYear();
                 }
                 return true;
@@ -215,24 +190,20 @@ function OvertimeList() {
         setFilteredEntries(filtered);
     }, [entries, filterEmployee, filterPeriod, filterDate]);
 
-    // Format date input field depending on filterPeriod
     const getDateInputType = () => {
         if (filterPeriod === "daily") return "date";
         if (filterPeriod === "monthly") return "month";
-        if (filterPeriod === "yearly") return "number"; // we'll handle year input specially
+        if (filterPeriod === "yearly") return "number";
         return "date";
     };
 
-    // For yearly filter, use a text input with year only
     const handleYearChange = (e) => {
         let val = e.target.value;
-        // Ensure only numbers and max length 4
         if (/^\d{0,4}$/.test(val)) {
             setFilterDate(val);
         }
     };
 
-    // Convert yearly input to Date (Jan 1st of that year) for filtering
     const parseFilterDate = () => {
         if (filterPeriod === "yearly") {
             const yearNum = parseInt(filterDate);
@@ -244,20 +215,23 @@ function OvertimeList() {
         return filterDate;
     };
 
-    // Use parsed date for filtering
     useEffect(() => {
         if (filterPeriod === "yearly") {
             const parsedDate = parseFilterDate();
             if (parsedDate) setFilterDate(parsedDate.toISOString().slice(0, 10));
-            else setFilteredEntries([]); // invalid year, empty
+            else setFilteredEntries([]);
         }
     }, [filterDate, filterPeriod]);
+
+    const totalOTs = filteredEntries.reduce(
+        (sum, e) => sum + Number(e.confirmed_hours || 0),
+        0
+    );
 
     return (
         <>
             <h2>Overtime Entries</h2>
 
-            {/* Filters */}
             <div style={{ marginBottom: 20 }}>
                 <label>
                     Employee:&nbsp;
@@ -282,12 +256,11 @@ function OvertimeList() {
                         value={filterPeriod}
                         onChange={(e) => {
                             setFilterPeriod(e.target.value);
-                            // Reset filterDate accordingly
                             const now = new Date();
                             if (e.target.value === "daily") {
                                 setFilterDate(now.toISOString().slice(0, 10));
                             } else if (e.target.value === "monthly") {
-                                setFilterDate(now.toISOString().slice(0, 7)); // yyyy-mm
+                                setFilterDate(now.toISOString().slice(0, 7));
                             } else if (e.target.value === "yearly") {
                                 setFilterDate(now.getFullYear().toString());
                             }
@@ -322,6 +295,10 @@ function OvertimeList() {
                 </label>
             </div>
 
+            <div style={{ marginTop: 20, fontWeight: "bold" }}>
+                Total Confirmed Overtime Hours: {totalOTs}
+            </div>
+
             {loading ? (
                 <p>Loading entries...</p>
             ) : error ? (
@@ -329,24 +306,30 @@ function OvertimeList() {
             ) : filteredEntries.length === 0 ? (
                 <p>No overtime entries found.</p>
             ) : (
-                <table border="1" cellPadding="10" cellSpacing="0" width="100%">
-                    <thead>
-                        <tr>
-                            <th>Employee No</th>
-                            <th>Name</th>
-                            <th>Date</th>
-                            <th>In Time</th>
-                            <th>Out Time</th>
-                            <th>Night Shift</th>
-                            <th>Reason</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredEntries.map((e) => (
-                            <tr key={e._id}>
-                                {editId === e._id ? (
-                                    <>
+                <>
+                    <table border="1" cellPadding="10" cellSpacing="0" width="100%">
+                        <thead>
+                            <tr>
+                                <th>Employee No</th>
+                                <th>Name</th>
+                                <th>Date</th>
+                                <th>In Time</th>
+                                <th>Out Time</th>
+                                <th>Ot_normal_hours</th>
+                                <th>Ot_double_hours</th>
+                                <th>Ot_triple_hours</th>
+                                <th>Total Ot Hours</th>
+                                <th>Night Shift</th>
+                                <th>Confirmed Hours</th>
+                                <th>Reason</th>
+                                <th>Approval Stage</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredEntries.map((e) =>
+                                editId === e._id ? (
+                                    <tr key={e._id}>
                                         <td>
                                             <select
                                                 name="employee_no"
@@ -367,7 +350,6 @@ function OvertimeList() {
                                                 name="employee_name"
                                                 value={editForm.employee_name}
                                                 readOnly
-                                                disabled
                                             />
                                         </td>
                                         <td>
@@ -396,10 +378,53 @@ function OvertimeList() {
                                         </td>
                                         <td>
                                             <input
+                                                type="number"
+                                                name="ot_normal_hours"
+                                                value={editForm.ot_normal_hours}
+                                                onChange={handleEditChange}
+                                                disabled
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                name="ot_double_hours"
+                                                value={editForm.ot_double_hours}
+                                                onChange={handleEditChange}
+                                                disabled
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                name="ot_triple_hours"
+                                                value={editForm.ot_triple_hours}
+                                                onChange={handleEditChange}
+                                                disabled
+                                            />
+                                        </td>
+                                        <td>
+                                            {Number(editForm.ot_normal_hours || 0) +
+                                                Number(editForm.ot_double_hours || 0) +
+                                                Number(editForm.ot_triple_hours || 0)}
+                                        </td>
+                                        <td>
+                                            <input
                                                 type="checkbox"
                                                 name="isNightShift"
                                                 checked={editForm.isNightShift}
                                                 onChange={handleEditChange}
+                                                disabled
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                name="confirmed_hours"
+                                                value={editForm.confirmed_hours}
+                                                onChange={handleEditChange}
+                                                min="0"
+                                                step="0.1"
                                             />
                                         </td>
                                         <td>
@@ -411,36 +436,50 @@ function OvertimeList() {
                                             />
                                         </td>
                                         <td>
+                                            <select
+                                                name="approval_stage"
+                                                value={editForm.approval_stage}
+                                                onChange={handleEditChange}
+                                            >
+                                                <option value="pending">Pending</option>
+                                                <option value="approved(production)">Approved (Production)</option>
+                                                <option value="final_approved(hr)">Final Approved (HR)</option>
+                                            </select>
+                                        </td>
+                                        <td>
                                             <button onClick={saveEdit}>Save</button>
                                             <button onClick={cancelEdit} style={{ marginLeft: 8 }}>
                                                 Cancel
                                             </button>
                                         </td>
-                                    </>
+                                    </tr>
                                 ) : (
-                                    <>
+                                    <tr key={e._id}>
                                         <td>{e.employee_no}</td>
                                         <td>{e.employee_name}</td>
                                         <td>{new Date(e.date).toLocaleDateString()}</td>
                                         <td>{new Date(e.inTime).toLocaleString()}</td>
                                         <td>{new Date(e.outTime).toLocaleString()}</td>
+                                        <td>{e.ot_normal_hours}</td>
+                                        <td>{e.ot_double_hours}</td>
+                                        <td>{e.ot_triple_hours}</td>
+                                        <td>{e.ot_normal_hours + e.ot_double_hours + e.ot_triple_hours}</td>
                                         <td>{e.isNightShift ? "Yes" : "No"}</td>
+                                        <td>{e.confirmed_hours}</td>
                                         <td>{e.reason}</td>
+                                        <td>{e.approval_stage}</td>
                                         <td>
-                                            <button
-                                                onClick={() => startEdit(e)}
-                                                style={{ marginRight: 10 }}
-                                            >
+                                            <button onClick={() => startEdit(e)} style={{ marginRight: 10 }}>
                                                 Edit
                                             </button>
                                             <button onClick={() => handleDelete(e._id)}>Delete</button>
                                         </td>
-                                    </>
-                                )}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                    </tr>
+                                )
+                            )}
+                        </tbody>
+                    </table>
+                </>
             )}
         </>
     );
