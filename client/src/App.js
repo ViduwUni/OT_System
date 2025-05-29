@@ -2,20 +2,20 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 
-import TxtToExcel from './utils/TxtToExcel';
-
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import DailyOvertimeForm from './pages/DailyOvertimeForm';
+import TxtToExcel from './utils/TxtToExcel';
 import EmployeeManagement from './pages/EmployeeManagement';
+import OvertimeList from './components/OvertimeList';
+import OvertimeForm from './components/OvertimeForm';
+import GroupedOvertimeApproval from './pages/GroupedOvertimeApproval';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/txttoexcel" element={<TxtToExcel />} />
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={
@@ -24,15 +24,34 @@ function App() {
             </PrivateRoute>
           }
           />
-          <Route path="/weeklyOvertime" element={
+          <Route path="/txttoexcel" element={
             <PrivateRoute>
-              <DailyOvertimeForm />
+              <TxtToExcel />
             </PrivateRoute>
-          }
-          />
+          } />
           <Route path="/employeeManagement" element={
             <PrivateRoute>
               <EmployeeManagement />
+            </PrivateRoute>
+          }
+          />
+
+          {/* OVERTIME */}
+          <Route path="/overtimeList" element={
+            <PrivateRoute>
+              <OvertimeList />
+            </PrivateRoute>
+          }
+          />
+          <Route path="/overtimeForm" element={
+            <PrivateRoute>
+              <OvertimeForm />
+            </PrivateRoute>
+          }
+          />
+          <Route path="/groupedApproval" element={
+            <PrivateRoute>
+              <GroupedOvertimeApproval />
             </PrivateRoute>
           }
           />
