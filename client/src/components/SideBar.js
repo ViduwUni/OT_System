@@ -12,7 +12,7 @@ export default function SideBar() {
             padding: '1rem'
         }}>
             <h2>Menu</h2>
-            <ul style={{ listStyle: 'none', padding: 0 }}>
+            <ul style={{ padding: 0 }}>
                 <li><Link to="/dashboard">Dashboard</Link></li>
                 <li><Link to="/txttoexcel">Text to Excel</Link></li>
                 <li><Link to="/employeeManagement">Employees</Link></li>

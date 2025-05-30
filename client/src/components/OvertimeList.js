@@ -19,6 +19,7 @@ function OvertimeList() {
         const d = new Date();
         return d.toISOString().slice(0, 10);
     });
+    const [bulkApprovalStage, setBulkApprovalStage] = useState("approved(production)");
 
     const fetchEntries = async () => {
         setLoading(true);
@@ -143,6 +144,37 @@ function OvertimeList() {
             cancelEdit();
         } catch {
             alert("Failed to save changes.");
+        }
+    };
+
+    const handleBulkApprove = async () => {
+        if (
+            !window.confirm(
+                `Are you sure you want to set approval stage to "${bulkApprovalStage}" for all filtered entries?`
+            )
+        )
+        return;
+
+        try {
+            const updates = filteredEntries.map((entry) =>
+                axios.put(`${API_BASE}/${entry._id}`, {
+                    ...entry,
+                    approval_stage: bulkApprovalStage,
+                })
+            );
+
+            await Promise.all(updates);
+
+            setEntries((prev) =>
+                prev.map((e) =>
+                    filteredEntries.some((fe) => fe._id === e._id)
+                        ? { ...e, approval_stage: bulkApprovalStage }
+                        : e
+                )
+            );
+            alert("Bulk approval successful.");
+        } catch (err) {
+            alert("Bulk approval failed.");
         }
     };
 
@@ -298,6 +330,23 @@ function OvertimeList() {
             <div style={{ marginTop: 20, fontWeight: "bold" }}>
                 Total Confirmed Overtime Hours: {totalOTs}
             </div>
+
+            {filteredEntries.length > 0 && (
+                <div style={{ marginTop: 10 }}>
+                    <label>
+                        Set Approval Stage:&nbsp;
+                        <select
+                            value={bulkApprovalStage}
+                            onChange={(e) => setBulkApprovalStage(e.target.value)}
+                        >
+                            <option value="approved(production)">Approved (Production)</option>
+                            <option value="final_approved(hr)">Final Approved (HR)</option>
+                        </select>
+                    </label>
+                    &nbsp;&nbsp;
+                    <button onClick={handleBulkApprove}>Bulk Approve</button>
+                </div>
+            )}
 
             {loading ? (
                 <p>Loading entries...</p>
