@@ -15,7 +15,7 @@ export default function Register() {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -36,7 +36,7 @@ export default function Register() {
         }
 
         try {
-            await axios.post("http://localhost:5000/api/auth/register", formData);
+            await axios.post(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/auth/register`, formData);
             alert("Registered successfully! Please login.");
             navigate("/");
         } catch (err) {

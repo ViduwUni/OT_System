@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000/api/overtime";
-const EMPLOYEE_API = "http://localhost:5000/api/employee";
+const API_BASE = `http://${process.env.REACT_APP_BACKEND_IP}:5000/api/overtime`;
+const EMPLOYEE_API = `http://${process.env.REACT_APP_BACKEND_IP}:5000/api/employee`;
 
 function OvertimeForm() {
     const [employees, setEmployees] = useState([]);
@@ -241,173 +241,189 @@ function OvertimeForm() {
 
             <form onSubmit={handleSubmit}>
                 {forms.map((form, i) => (
-                    <div
-                        key={i}
-                        style={{
-                            border: "1px solid #ccc",
-                            marginBottom: 20,
-                            padding: 10,
-                            position: "relative",
-                        }}
-                    >
-                        <button
-                            type="button"
-                            onClick={() => removeForm(i)}
-                            style={{ position: "absolute", top: 5, right: 5 }}
-                            disabled={forms.length === 1}
-                            title="Remove this entry"
-                        >
-                            X
-                        </button>
+                    <React.Fragment key={i}>
+                        <>
+                            {form.error && (
+                                <p style={{ color: "red", fontWeight: "bold" }}>{form.error}</p>
+                            )}
 
-                        {form.error && (
-                            <p style={{ color: "red", fontWeight: "bold" }}>{form.error}</p>
-                        )}
-
-                        <div>
-                            <label>Employee No *</label>
-                            <br />
-                            <select
-                                name="employee_no"
-                                value={form.employee_no}
-                                onChange={(e) => handleChange(i, e)}
-                                required
+                            <div style={{ backgroundColor: "#f9f9f9", padding: "8px", marginBottom: "10px", border: "1px dashed #ccc", fontSize: "0.9em" }}>
+                                <strong>Summary</strong><br />
+                                {form.employee_no && <div key="empno"><strong>Emp No:</strong> {form.employee_no}</div>}
+                                {form.employee_name && <div key="name"><strong>Name:</strong> {form.employee_name}</div>}
+                                {form.date && <div key="date"><strong>Date:</strong> {form.date}</div>}
+                                {form.inTime && <div key="in"><strong>In:</strong> {new Date(form.inTime).toLocaleString()}</div>}
+                                {form.outTime && <div key="out"><strong>Out:</strong> {new Date(form.outTime).toLocaleString()}</div>}
+                            </div>
+                            <div
+                                key={i}
+                                style={{
+                                    border: "1px solid #ccc",
+                                    marginBottom: 20,
+                                    padding: 10,
+                                    position: "relative",
+                                }}
                             >
-                                <option value="">Select Employee</option>
-                                {employees.map((emp) => (
-                                    <option key={emp._id} value={emp.employee_no}>
-                                        {emp.employee_no} - {emp.employee_name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeForm(i)}
+                                    style={{ position: "absolute", top: 5, right: 5 }}
+                                    disabled={forms.length === 1}
+                                    title="Remove this entry"
+                                >
+                                    X
+                                </button>
 
-                        <div>
-                            <label>Employee Name *</label>
-                            <br />
-                            <input
-                                type="text"
-                                name="employee_name"
-                                value={form.employee_name}
-                                readOnly
-                                disabled
-                                required
-                            />
-                        </div>
+                                {form.error && (
+                                    <p style={{ color: "red", fontWeight: "bold" }}>{form.error}</p>
+                                )}
 
-                        <div>
-                            <label>Shift *</label>
-                            <br />
-                            <select
-                                name="shift"
-                                value={form.shift}
-                                onChange={(e) => handleChange(i, e)}
-                                required
-                            >
-                                <option value="A">Shift A (6:30–3:30)</option>
-                                <option value="B">Shift B (8:30–5:30)</option>
-                            </select>
-                        </div>
+                                <div>
+                                    <label>Employee No *</label>
+                                    <br />
+                                    <select
+                                        name="employee_no"
+                                        value={form.employee_no}
+                                        onChange={(e) => handleChange(i, e)}
+                                        required
+                                    >
+                                        <option value="">Select Employee</option>
+                                        {employees.map((emp) => (
+                                            <option key={emp._id} value={emp.employee_no}>
+                                                {emp.employee_no} - {emp.employee_name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                        <div>
-                            <label>Date *</label>
-                            <br />
-                            <input
-                                type="date"
-                                name="date"
-                                value={form.date}
-                                onChange={(e) => handleChange(i, e)}
-                                required
-                            />
-                        </div>
+                                <div>
+                                    <label>Employee Name *</label>
+                                    <br />
+                                    <input
+                                        type="text"
+                                        name="employee_name"
+                                        value={form.employee_name}
+                                        readOnly
+                                        disabled
+                                        required
+                                    />
+                                </div>
 
-                        <div>
-                            <label>In Time *</label>
-                            <br />
-                            <input
-                                type="datetime-local"
-                                name="inTime"
-                                value={form.inTime}
-                                onChange={(e) => handleChange(i, e)}
-                                required
-                            />
-                        </div>
+                                <div>
+                                    <label>Shift *</label>
+                                    <br />
+                                    <select
+                                        name="shift"
+                                        value={form.shift}
+                                        onChange={(e) => handleChange(i, e)}
+                                        required
+                                    >
+                                        <option value="A">Shift A (6:30–3:30)</option>
+                                        <option value="B">Shift B (8:30–5:30)</option>
+                                    </select>
+                                </div>
 
-                        <div>
-                            <label>Out Time *</label>
-                            <br />
-                            <input
-                                type="datetime-local"
-                                name="outTime"
-                                value={form.outTime}
-                                onChange={(e) => handleChange(i, e)}
-                                required
-                            />
-                        </div>
+                                <div>
+                                    <label>Date *</label>
+                                    <br />
+                                    <input
+                                        type="date"
+                                        name="date"
+                                        value={form.date}
+                                        onChange={(e) => handleChange(i, e)}
+                                        required
+                                    />
+                                </div>
 
-                        <div>
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    name="isNightShift"
-                                    checked={form.isNightShift}
-                                    disabled
-                                    readOnly
-                                />{" "}
-                                Night Shift
-                            </label>
-                        </div>
+                                <div>
+                                    <label>In Time *</label>
+                                    <br />
+                                    <input
+                                        type="datetime-local"
+                                        name="inTime"
+                                        value={form.inTime}
+                                        onChange={(e) => handleChange(i, e)}
+                                        required
+                                    />
+                                </div>
 
-                        <div>
-                            <label>OT Normal Hours</label>
-                            <br />
-                            <input
-                                type="number"
-                                name="ot_normal_hours"
-                                value={form.ot_normal_hours}
-                                readOnly
-                                disabled
-                                step="0.25"
-                            />
-                        </div>
+                                <div>
+                                    <label>Out Time *</label>
+                                    <br />
+                                    <input
+                                        type="datetime-local"
+                                        name="outTime"
+                                        value={form.outTime}
+                                        onChange={(e) => handleChange(i, e)}
+                                        required
+                                    />
+                                </div>
 
-                        <div>
-                            <label>OT Double Hours</label>
-                            <br />
-                            <input
-                                type="number"
-                                name="ot_double_hours"
-                                value={form.ot_double_hours}
-                                readOnly
-                                disabled
-                                step="0.25"
-                            />
-                        </div>
+                                <div>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            name="isNightShift"
+                                            checked={form.isNightShift}
+                                            disabled
+                                            readOnly
+                                        />{" "}
+                                        Night Shift
+                                    </label>
+                                </div>
 
-                        <div>
-                            <label>OT Triple Hours</label>
-                            <br />
-                            <input
-                                type="number"
-                                name="ot_triple_hours"
-                                value={form.ot_triple_hours}
-                                readOnly
-                                disabled
-                                step="0.25"
-                            />
-                        </div>
+                                <div>
+                                    <label>OT Normal Hours</label>
+                                    <br />
+                                    <input
+                                        type="number"
+                                        name="ot_normal_hours"
+                                        value={form.ot_normal_hours}
+                                        readOnly
+                                        disabled
+                                        step="0.25"
+                                    />
+                                </div>
 
-                        <div>
-                            <label>Reason</label>
-                            <br />
-                            <textarea
-                                name="reason"
-                                value={form.reason}
-                                onChange={(e) => handleChange(i, e)}
-                                rows={3}
-                            />
-                        </div>
-                    </div>
+                                <div>
+                                    <label>OT Double Hours</label>
+                                    <br />
+                                    <input
+                                        type="number"
+                                        name="ot_double_hours"
+                                        value={form.ot_double_hours}
+                                        readOnly
+                                        disabled
+                                        step="0.25"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label>OT Triple Hours</label>
+                                    <br />
+                                    <input
+                                        type="number"
+                                        name="ot_triple_hours"
+                                        value={form.ot_triple_hours}
+                                        readOnly
+                                        disabled
+                                        step="0.25"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label>Reason</label>
+                                    <br />
+                                    <textarea
+                                        name="reason"
+                                        value={form.reason}
+                                        onChange={(e) => handleChange(i, e)}
+                                        rows={3}
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    </React.Fragment>
                 ))}
 
                 <button type="button" onClick={addForm} disabled={loading}>
@@ -420,7 +436,7 @@ function OvertimeForm() {
                 <button type="submit" disabled={loading}>
                     Submit All
                 </button>
-            </form>
+            </form >
         </div>
     );
 }

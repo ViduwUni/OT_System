@@ -11,7 +11,7 @@ const EmployeeManagement = () => {
     }, []);
 
     const fetchEmployees = async () => {
-        const res = await axios.get('http://localhost:5000/api/employee');
+        const res = await axios.get(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/employee`);
         setEmployees(res.data);
     };
 
@@ -23,9 +23,9 @@ const EmployeeManagement = () => {
         e.preventDefault();
         try {
             if (editingId) {
-                await axios.put(`http://localhost:5000/api/employee/${editingId}`, form);
+                await axios.put(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/employee/${editingId}`, form);
             } else {
-                await axios.post('http://localhost:5000/api/employee', form);
+                await axios.post(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/employee`, form);
             }
             fetchEmployees();
             setForm({ employee_no: '', employee_name: '' });
@@ -42,7 +42,7 @@ const EmployeeManagement = () => {
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure?')) return;
-        await axios.delete(`http://localhost:5000/api/employee/${id}`);
+        await axios.delete(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/employee/${id}`);
         fetchEmployees();
     };
 

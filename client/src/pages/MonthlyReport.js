@@ -15,7 +15,7 @@ function MonthlyReport() {
     const fetchReport = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`http://localhost:5000/api/overtime/monthly-report?month=${month}`);
+            const res = await axios.get(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/overtime/monthly-report?month=${month}`);
             setReport(res.data);
             setError(null);
         } catch (err) {
@@ -67,7 +67,7 @@ function MonthlyReport() {
         report.forEach(entry => {
             wsData.push(
                 [`Employee No: ${entry.employee_no}`, `Name: ${entry.employee_name}`],
-                ['Date', 'OT Normal', 'OT Double', 'OT Triple', 'Night Shift']
+                ['Date', 'OT Normal', 'OT Double', 'OT Triple', 'Night Shift', 'Reason']
             );
 
             entry.entries?.forEach(day => {
@@ -76,7 +76,8 @@ function MonthlyReport() {
                     (day.ot_normal_hours ?? 0).toFixed(2),
                     (day.ot_double_hours ?? 0).toFixed(2),
                     (day.ot_triple_hours ?? 0).toFixed(2),
-                    day.isNightShift ? 'Yes' : 'No'
+                    day.isNightShift ? 'Yes' : 'No',
+                    day.reason || ''
                 ]);
             });
 
@@ -85,9 +86,22 @@ function MonthlyReport() {
 
         const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-        // Optional: set column widths
-        const colWidths = new Array(wsData[0].length).fill({ wch: 20 });
-        ws['!cols'] = colWidths;
+        // Dynamic column width
+        const getMaxWidths = (data) => {
+            const colCount = Math.max(...data.map(row => row.length));
+            const widths = new Array(colCount).fill(0);
+
+            data.forEach(row => {
+                row.forEach((cell, i) => {
+                    const len = String(cell).length;
+                    widths[i] = Math.max(widths[i], len);
+                });
+            });
+
+            return widths.map(w => ({ wch: w + 5 }));
+        };
+
+        ws['!cols'] = getMaxWidths(wsData);
 
         // Optional: freeze panes (e.g., keep headers in view)
         ws['!freeze'] = { xSplit: 0, ySplit: 10 };

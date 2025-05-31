@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000/api/overtime";
-const EMPLOYEE_API = "http://localhost:5000/api/employee";
+const API_BASE = `http://${process.env.REACT_APP_BACKEND_IP}:5000/api/overtime`;
+const EMPLOYEE_API = `http://${process.env.REACT_APP_BACKEND_IP}:5000/api/employee`;
 
 function OvertimeList() {
     const [entries, setEntries] = useState([]);
