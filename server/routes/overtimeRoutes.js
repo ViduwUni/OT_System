@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/overtimeController');
 
-router.get("/monthly-report", controller.getMonthlyOTReport);
+router.post('/bulk', controller.bulkCreateOvertimeEntries);
+router.get('/monthly-report', controller.getMonthlyOTReport);
 
 router.post('/', controller.createOvertimeEntry);
 router.get('/', controller.getAllOvertimeEntries);

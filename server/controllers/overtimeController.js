@@ -61,22 +61,21 @@ exports.deleteOvertimeEntry = async (req, res) => {
 // Get monthly OT report
 exports.getMonthlyOTReport = async (req, res) => {
     try {
-        const { month } = req.query; // format: YYYY-MM
-        if (!month || !/^\d{4}-\d{2}$/.test(month)) {
-            return res.status(400).json({ error: 'Invalid or missing month parameter (YYYY-MM)' });
+        const { startDate, endDate } = req.query;
+
+        if (!startDate || !endDate) {
+            return res.status(400).json({ error: 'Missing startDate or endDate' });
         }
 
-        const [year, monthNum] = month.split('-').map(Number);
-
-        const startDate = new Date(year, monthNum - 1, 1);
-        const endDate = new Date(year, monthNum, 1); // exclusive
+        const start = new Date(startDate);
+        const end = new Date(endDate);
 
         const results = await OvertimeEntry.aggregate([
             {
                 $match: {
                     date: {
-                        $gte: startDate,
-                        $lt: endDate
+                        $gte: start,
+                        $lte: end
                     }
                 }
             },
@@ -123,6 +122,23 @@ exports.getMonthlyOTReport = async (req, res) => {
         ]);
 
         res.json(results);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Bulk import overtime entries (TEST)
+exports.bulkCreateOvertimeEntries = async (req, res) => {
+    try {
+        const entries = req.body;
+
+        if (!Array.isArray(entries) || entries.length === 0) {
+            return res.status(400).json({ error: 'No entries provided' });
+        }
+
+        const saved = await OvertimeEntry.insertMany(entries);
+        res.status(201).json(saved);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });

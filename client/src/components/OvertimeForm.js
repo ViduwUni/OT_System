@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import * as XLSX from 'xlsx';
+import DownloadTemplate from './DownloadTemplate';
 
 const API_BASE = `http://${process.env.REACT_APP_BACKEND_IP}:5000/api/overtime`;
 const EMPLOYEE_API = `http://${process.env.REACT_APP_BACKEND_IP}:5000/api/employee`;
@@ -58,8 +60,8 @@ function OvertimeForm() {
         if (!date || !inTime || !outTime)
             return { ot_normal_hours: 0, ot_double_hours: 0, ot_triple_hours: 0 };
 
-        const inDateTime = combineDateTime(date, inTime);
-        let outDateTime = combineDateTime(date, outTime);
+        const inDateTime = typeof inTime === 'string' ? combineDateTime(date, inTime) : new Date(inTime);
+        let outDateTime = typeof outTime === 'string' ? combineDateTime(date, outTime) : new Date(outTime);
         if (!inDateTime || !outDateTime)
             return { ot_normal_hours: 0, ot_double_hours: 0, ot_triple_hours: 0 };
 
@@ -87,6 +89,151 @@ function OvertimeForm() {
                 return { ot_normal_hours: 0, ot_double_hours: 0, ot_triple_hours: 0 };
             }
         }
+    };
+
+    // Bulk Upload
+    // Bulk Upload
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = async (evt) => {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: 'binary' });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+            const employeeMap = {};
+            employees.forEach(emp => {
+                employeeMap[emp.employee_no] = emp.employee_name;
+            });
+
+            const skippedRows = [];
+            const processedPayloads = [];
+
+            // Helpers to handle Excel date/time
+            const parseDateFromExcel = (excelValue) => {
+                if (typeof excelValue === "number") {
+                    const date = XLSX.SSF.parse_date_code(excelValue);
+                    if (!date) return null;
+                    return new Date(Date.UTC(date.y, date.m - 1, date.d));
+                }
+                const parsed = new Date(excelValue);
+                return isNaN(parsed) ? null : parsed;
+            };
+
+            const parseTimeFromExcel = (excelValue) => {
+                if (typeof excelValue === "number") {
+                    const seconds = Math.round((excelValue - Math.floor(excelValue)) * 86400);
+                    const hours = Math.floor(seconds / 3600);
+                    const minutes = Math.floor((seconds % 3600) / 60);
+                    const result = new Date(0); // base date
+                    result.setUTCHours(hours, minutes, 0, 0);
+                    return result;
+                }
+                const parsed = new Date(`1970-01-01T${excelValue}`);
+                return isNaN(parsed) ? null : parsed;
+            };
+
+            const combineDateAndTime = (dateObj, timeObj) => {
+                const combined = new Date(dateObj);
+                combined.setHours(timeObj.getUTCHours(), timeObj.getUTCMinutes(), 0, 0);
+                return combined;
+            };
+
+            rows.forEach((row, index) => {
+                const rowNumber = index + 2;
+
+                const employee_no = row["Employee No"];
+                const dateRaw = row["Date"];
+                const shift = row["Shift"] || "A";
+                const inTimeRaw = row["In Time"];
+                const outTimeRaw = row["Out Time"];
+                const reason = row["Reason"] || "";
+
+                const employee_name = row["Employee Name"] || employeeMap[employee_no] || "";
+
+                const parsedDate = parseDateFromExcel(dateRaw);
+                const inTimeObj = parseTimeFromExcel(inTimeRaw);
+                const outTimeObj = parseTimeFromExcel(outTimeRaw);
+
+                if (!employee_no || !parsedDate || !inTimeObj || !outTimeObj) {
+                    skippedRows.push({
+                        row: rowNumber,
+                        reason: "Missing or invalid Date, In Time, or Out Time"
+                    });
+                    return;
+                }
+
+                const inDateTime = combineDateAndTime(parsedDate, inTimeObj);
+                let outDateTime = combineDateAndTime(parsedDate, outTimeObj);
+
+                if (outDateTime <= inDateTime) {
+                    outDateTime.setDate(outDateTime.getDate() + 1);
+                }
+
+                const isNightShift =
+                    outDateTime.getHours() > 21 ||
+                    (outDateTime.getHours() === 21 && outDateTime.getMinutes() > 15);
+
+                const day = inDateTime.getDay();
+                const totalHours = (outDateTime - inDateTime) / (1000 * 60 * 60);
+
+                let ot_normal_hours = 0;
+                let ot_double_hours = 0;
+
+                if (day === 0) {
+                    ot_double_hours = Math.round(totalHours * 4) / 4;
+                } else {
+                    const shiftEnd = new Date(`${parsedDate.toISOString().split("T")[0]}T${shift === "A" ? "15:30:00" : "17:30:00"}`);
+                    if (outDateTime > shiftEnd) {
+                        const ot = (outDateTime - shiftEnd) / (1000 * 60 * 60);
+                        ot_normal_hours = Math.round(ot * 4) / 4;
+                    }
+                }
+
+                processedPayloads.push({
+                    employee_no,
+                    employee_name,
+                    date: parsedDate,
+                    shift,
+                    inTime: inDateTime,
+                    outTime: outDateTime,
+                    isNightShift,
+                    ot_normal_hours,
+                    ot_double_hours,
+                    ot_triple_hours: 0,
+                    reason
+                });
+            });
+
+            if (processedPayloads.length === 0) {
+                alert("❌ No valid rows to import. Please check your file.");
+                if (skippedRows.length > 0) {
+                    const summary = skippedRows.map(r => `Row ${r.row}: ${r.reason}`).join("\n");
+                    console.warn("Skipped Rows:\n" + summary);
+                }
+                return;
+            }
+
+            try {
+                await axios.post(`${API_BASE}/bulk`, processedPayloads);
+                alert(`✅ Successfully imported ${processedPayloads.length} entries.`);
+
+                if (skippedRows.length > 0) {
+                    const summary = skippedRows.map(r => `Row ${r.row}: ${r.reason}`).join("\n");
+                    alert(`⚠️ Skipped ${skippedRows.length} row(s):\n\n${summary}`);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("❌ Bulk import failed.");
+            }
+        };
+
+        reader.readAsBinaryString(file);
     };
 
     // Handle input changes per form index
@@ -238,6 +385,13 @@ function OvertimeForm() {
             <h2>Add Multiple Overtime Entries</h2>
             {submitError && <p style={{ color: "red" }}>{submitError}</p>}
             {loading && <p>Loading...</p>}
+
+            <div>
+                <h3>Bulk Upload</h3>
+                <DownloadTemplate />
+                <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+            </div>
+            <br />
 
             <form onSubmit={handleSubmit}>
                 {forms.map((form, i) => (

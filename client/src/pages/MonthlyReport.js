@@ -2,12 +2,21 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 
+import './css/MonthlyReport.css';
+
 function MonthlyReport() {
     const [report, setReport] = useState([]);
     const [expandedEmployee, setExpandedEmployee] = useState(null);
-    const [month, setMonth] = useState(() => {
+    const [startDate, setStartDate] = useState(() => {
         const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        d.setDate(1);
+        return d.toISOString().slice(0, 10);
+    });
+    const [endDate, setEndDate] = useState(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() + 1);
+        d.setDate(0);
+        return d.toISOString().slice(0, 10);
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -15,7 +24,12 @@ function MonthlyReport() {
     const fetchReport = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/overtime/monthly-report?month=${month}`);
+            const res = await axios.get(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/overtime/monthly-report`, {
+                params: {
+                    startDate,
+                    endDate
+                }
+            });
             setReport(res.data);
             setError(null);
         } catch (err) {
@@ -29,7 +43,7 @@ function MonthlyReport() {
 
     useEffect(() => {
         fetchReport();
-    }, [month]);
+    }, [startDate, endDate]);
 
     const toggleExpand = (employeeNo) => {
         setExpandedEmployee(expandedEmployee === employeeNo ? null : employeeNo);
@@ -52,7 +66,7 @@ function MonthlyReport() {
         });
 
         // Summary
-        wsData.push([`Overtime Monthly Report - ${month}`]);
+        wsData.push([`Overtime Report from ${startDate} to ${endDate}`]);
         wsData.push([]);
         wsData.push(['Summary']);
         wsData.push(['Total OT Normal Hours', totalNormal.toFixed(2)]);
@@ -107,7 +121,7 @@ function MonthlyReport() {
         ws['!freeze'] = { xSplit: 0, ySplit: 10 };
 
         XLSX.utils.book_append_sheet(wb, ws, 'Monthly OT Report');
-        XLSX.writeFile(wb, `OT_Report_${month}.xlsx`);
+        XLSX.writeFile(wb, `OT_Report_${startDate}_to_${endDate}.xlsx`);
     };
 
     return (
@@ -115,15 +129,25 @@ function MonthlyReport() {
             <h2>Monthly OT Report</h2>
 
             <label>
-                Select Month: &nbsp;
+                Start Date: &nbsp;
                 <input
-                    type="month"
-                    value={month}
-                    onChange={(e) => setMonth(e.target.value)}
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    max={endDate}
+                />
+            </label>
+            &nbsp;&nbsp;
+            <label>
+                End Date: &nbsp;
+                <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    min={startDate}
                 />
             </label>
 
-            {/* NEW: Export button */}
             <button
                 onClick={exportToExcel}
                 style={{
@@ -144,7 +168,7 @@ function MonthlyReport() {
             ) : error ? (
                 <p style={{ color: 'red' }}>{error}</p>
             ) : report.length === 0 ? (
-                <p>No data found for selected month.</p>
+                <p>No data found for selected date range.</p>
             ) : (
                 <table border="1" cellPadding="10" cellSpacing="0" style={{ marginTop: '20px', borderCollapse: 'collapse', width: '100%' }}>
                     <thead style={{ backgroundColor: '#f0f0f0' }}>
@@ -195,7 +219,7 @@ function MonthlyReport() {
                                                     </thead>
                                                     <tbody>
                                                         {entry.entries.map((day, i) => (
-                                                            <tr key={i}>
+                                                            <tr key={i} className='child-table-row'>
                                                                 <td>{entry.employee_no}</td>
                                                                 <td>{entry.employee_name}</td>
                                                                 <td>{new Date(day.date).toLocaleDateString()}</td>
