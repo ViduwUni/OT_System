@@ -37,3 +37,37 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+// Get all users
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find().select('-password');
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Delete a user
+exports.deleteUser = async (req, res) => {
+    try {
+        await User.findByIdAndDelete(req.params.id);
+        res.json({ message: "User deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Update a user
+exports.updateUser = async (req, res) => {
+    try {
+        const updates = req.body;
+        if (updates.password) {
+            updates.password = await bcrypt.hash(updates.password, 10);
+        }
+        const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true }).select('-password');
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

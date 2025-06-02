@@ -6,6 +6,7 @@ import GAListener from './utils/GAListener';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import UserManager from './pages/UserManager';
 import EmployeeManagement from './pages/EmployeeManagement';
 import OvertimeList from './components/OvertimeList';
 import OvertimeForm from './components/OvertimeForm';
@@ -23,6 +24,12 @@ function App() {
           <Route path="/dashboard" element={
             <PrivateRoute>
               <Dashboard />
+            </PrivateRoute>
+          }
+          />
+          <Route path="/userManager" element={
+            <PrivateRoute>
+              <UserManager />
             </PrivateRoute>
           }
           />

@@ -14,6 +14,7 @@ export default function SideBar() {
             <h2>Menu</h2>
             <ul style={{ padding: 0 }}>
                 <li><Link to="/dashboard">Dashboard</Link></li>
+                <li><Link to="/userManager">User Manager</Link></li>
                 <li><Link to="/scannerConverter">Scanner Converter</Link></li>
                 <li><Link to="/employeeManagement">Employees</Link></li>
                 <li><Link to="/overtimeList">Overtime List</Link></li>
