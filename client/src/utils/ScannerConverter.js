@@ -15,22 +15,7 @@ export default function ScannerConverter() {
             const rows = lines
                 .map(line => {
                     const parts = line.trim().split(/\s+/);
-                    if (parts.length < 3) return null;
-
-                    const [emp, date, time] = parts;
-                    const [h = '00', m = '00', s = '00'] = time.split(':');
-                    const hour = parseInt(h, 10);
-
-                    let actualDate = date;
-
-                    // Shift early-morning time to previous day (OUTs after midnight)
-                    if (hour >= 0 && hour < 6) {
-                        const d = new Date(date);
-                        d.setDate(d.getDate() - 1);
-                        actualDate = d.toISOString().split('T')[0]; // format as yyyy-mm-dd
-                    }
-
-                    return [emp, actualDate, time];
+                    return parts.length >= 3 ? parts.slice(0, 3) : null;
                 })
                 .filter(Boolean);
 
@@ -42,74 +27,32 @@ export default function ScannerConverter() {
         reader.readAsText(file);
     };
 
-    // Convert string time to Date object for comparison, handling MISSING as invalid
-    const toDateTime = (dateStr, timeStr) => {
-        if (!timeStr || timeStr === 'MISSING') return null;
-        const [hh = '00', mm = '00', ss = '00'] = timeStr.split(':');
-        return new Date(`${dateStr}T${hh.padStart(2, '0')}:${mm.padStart(2, '0')}:${ss.padStart(2, '0')}`);
-    };
-
-    const processAttendance = (rows) => {
+    const sortByEmployeeAndDate = (rows) => {
         const grouped = {};
 
-        // Group data by emp and date
         rows.forEach(([emp, date, time]) => {
-            if (!grouped[emp]) grouped[emp] = {};
-            if (!grouped[emp][date]) grouped[emp][date] = [];
+            if (!grouped[emp]) grouped[emp] = [];
+            grouped[emp].push([emp, date, time]);
+        });
 
-            grouped[emp][date].push({
-                time,
-                datetime: toDateTime(date, time),
+        const sorted = Object.keys(grouped).sort().flatMap(emp => {
+            return grouped[emp].sort((a, b) => {
+                const d1 = new Date(a[1]);
+                const d2 = new Date(b[1]);
+                return d1 - d2;
             });
         });
 
-        const finalRows = [];
-
-        Object.keys(grouped).forEach(emp => {
-            const dates = Object.keys(grouped[emp]).sort();
-
-            dates.forEach(date => {
-                const entries = grouped[emp][date];
-                // Remove null datetime entries before sorting
-                const validEntries = entries.filter(e => e.datetime !== null);
-                validEntries.sort((a, b) => a.datetime - b.datetime);
-
-                if (validEntries.length === 0) {
-                    // No valid times at all
-                    finalRows.push([emp, date, 'MISSING', 'MISSING']);
-                    return;
-                }
-
-                if (validEntries.length === 1) {
-                    const entry = validEntries[0];
-                    const hour = entry.datetime.getHours();
-
-                    // If time is between 0:00 and 5:59, treat as OUT
-                    if (hour >= 0 && hour < 6) {
-                        finalRows.push([emp, date, 'MISSING', entry.time]);
-                    } else {
-                        // Otherwise treat as IN (morning start)
-                        finalRows.push([emp, date, entry.time, 'MISSING']);
-                    }
-                } else {
-                    // Multiple entries: first is IN, last is OUT
-                    const inTime = validEntries[0].time;
-                    const outTime = validEntries[validEntries.length - 1].time;
-                    finalRows.push([emp, date, inTime, outTime]);
-                }
-            });
-        });
-
-        return finalRows;
+        return sorted;
     };
 
     const exportToExcel = () => {
-        const processed = processAttendance(data);
-        const header = ['Employee_No', 'Date', 'IN_Time', 'OUT_Time'];
-        const sheetData = [header, ...processed];
+        const sortedData = sortByEmployeeAndDate(data);
+        const header = ['Employee_No', 'Date', 'Time'];
+        const sheetData = [header, ...sortedData];
         const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sorted_Attendance');
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
         XLSX.writeFile(workbook, 'Sorted_Attendance.xlsx');
     };
 

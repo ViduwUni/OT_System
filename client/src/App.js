@@ -6,12 +6,10 @@ import GAListener from './utils/GAListener';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import TxtToExcel from './utils/TxtToExcel';
 import EmployeeManagement from './pages/EmployeeManagement';
 import OvertimeList from './components/OvertimeList';
 import OvertimeForm from './components/OvertimeForm';
 import MonthlyReport from './pages/MonthlyReport';
-
 import ScannerConverter from './utils/ScannerConverter';
 
 function App() {
@@ -28,11 +26,6 @@ function App() {
             </PrivateRoute>
           }
           />
-          <Route path="/txttoexcel" element={
-            <PrivateRoute>
-              <TxtToExcel />
-            </PrivateRoute>
-          } />
           <Route path="/scannerConverter" element={
             <PrivateRoute>
               <ScannerConverter />
