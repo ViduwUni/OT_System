@@ -15,7 +15,7 @@ const Greeting = ({ name }) => {
 
     return (
         <div>
-            <h2 className="text-lg font-bold text-primary">{getGreeting()} {name}!</h2>
+            <h2>{getGreeting()} {name}!</h2>
         </div>
     );
 };

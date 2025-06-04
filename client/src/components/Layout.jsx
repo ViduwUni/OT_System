@@ -1,14 +1,10 @@
-import FloatingNavbar from "./FloatingNavBar";
 import SideBar from "./SideBar";
 
 export default function Layout({ children }) {
-    return (
-        <div>
-            <main className='m-40 ml-64 mt-28 flex-1 bg-green-300 shadow-md z-40 flex items-center justify-between px-4 rounded-md'>
-                <FloatingNavbar />
-                {children}
-            </main>
-            <SideBar />
-        </div>
-    );
+  return (
+    <main className="grid gap-4 p-4 grid-cols-[220px,_1fr]">
+      <SideBar />
+      {children}
+    </main>
+  );
 }

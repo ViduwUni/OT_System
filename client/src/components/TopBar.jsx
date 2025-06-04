@@ -1,15 +1,16 @@
+import Notification from "./Notification";
 import { AuthContext } from "../context/AuthContext";
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import Greeting from "../utils/Greeting";
-import NotificationBell from "./Notification";
 
-export default function FloatingNavbar() {
+export default function TopBar() {
   const API_BASE = `http://${
     import.meta.env.VITE_APP_BACKEND_IP
   }:5000/api/overtime`;
   const [notifications, setNotifications] = useState([]);
   const { user } = useContext(AuthContext);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -50,11 +51,35 @@ export default function FloatingNavbar() {
     return () => clearInterval(intervalId);
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  });
+
   return (
-    <div className="fixed top-4 left-64 right-40 h-16 bg-white shadow-md z-40 flex items-center justify-between px-4 rounded-md">
-      <Greeting name={user?.name} />
-      <div className="relative">
-        <NotificationBell notifications={notifications} />
+    <div className="border-b px-4 mb-4 mt-2 pb-4 border-stone-200">
+      <div className="flex items-center justify-between p-0.5">
+        <div>
+          <span className="text-sm font-bold block">
+            <Greeting name={user?.name} />
+          </span>
+          <span className="text-xs block text-stone-500">
+            {currentTime.toLocaleString("en-US", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            })}
+          </span>
+        </div>
+        <div>
+          <Notification notifications={notifications} />
+        </div>
       </div>
     </div>
   );

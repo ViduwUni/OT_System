@@ -2,6 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import { useContext, useState, useEffect, useRef } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import AccountInfo from "./AccountInfo";
+import { Tooltip } from "antd";
 
 // Icons
 import { AiFillAppstore } from "react-icons/ai";
@@ -39,13 +41,26 @@ export default function SideBar() {
 
   const BACKEND_URL = `http://${import.meta.env.VITE_APP_BACKEND_IP}:5000`;
 
+  const signalIconSize = "text-2xl"; // ← Adjust icon size here
+
   const getSignalIcon = (ms) => {
-    if (ms < 100) return <BsWifi className="text-green-600 text-3xl" />;
+    if (ms < 100)
+      return <BsWifi className={`text-green-600 ${signalIconSize}`} />;
     if (ms < 250)
-      return <BsWifi2 className="text-yellow-500 text-3xl animate-pulse" />;
+      return (
+        <BsWifi2
+          className={`text-yellow-500 ${signalIconSize} animate-pulse`}
+        />
+      );
     if (ms < 500)
-      return <BsWifi1 className="text-orange-500 text-3xl animate-pulse" />;
-    return <BsWifiOff className="text-red-500 text-3xl animate-pulse" />;
+      return (
+        <BsWifi1
+          className={`text-orange-500 ${signalIconSize} animate-pulse`}
+        />
+      );
+    return (
+      <BsWifiOff className={`text-red-500 ${signalIconSize} animate-pulse`} />
+    );
   };
 
   const pingServer = async () => {
@@ -66,7 +81,6 @@ export default function SideBar() {
 
       setStatus(newStatus);
 
-      // Toast only if Weak or Bad and toast not shown yet for this status
       if (
         (newStatus.includes("Weak") || newStatus.includes("Bad")) &&
         newStatus !== prevStatus.current &&
@@ -79,7 +93,6 @@ export default function SideBar() {
         connToastShown.current.add(newStatus);
       }
 
-      // Reset toast tracking if status improved
       if (
         (newStatus === "🟢 Excellent" || newStatus === "🟡 Good") &&
         prevStatus.current !== newStatus
@@ -137,7 +150,6 @@ export default function SideBar() {
         dbToastShown.current.add("connected");
       }
 
-      // Reset toast tracking if status changes to connecting or unknown
       if (
         (newDbStatus === "connecting" || newDbStatus === "unknown") &&
         prevDbStatus.current !== newDbStatus
@@ -203,108 +215,104 @@ export default function SideBar() {
   };
 
   return (
-    <div className="fixed top-0 left-0 h-screen w-24 border-solid flex flex-col bg-primary text-text shadow-lg z-10">
-      {/* Main menu icons */}
-      <div className="flex flex-col flex-grow mt-6">
-        <SideBarIcon
-          icon={<AiFillAppstore size="28" />}
-          text="Dashboard"
-          to="/dashboard"
-          isActive={location.pathname === "/dashboard"}
-        />
-        <SideBarIcon
-          icon={<FaUsers size="28" />}
-          text="User Manager"
-          to="/userManager"
-          isActive={location.pathname === "/userManager"}
-        />
-        <SideBarIcon
-          icon={<GrUserWorker size="28" />}
-          text="Employees"
-          to="/employeeManagement"
-          isActive={location.pathname === "/employeeManagement"}
-        />
-        <SideBarIcon
-          icon={<FaWpforms size="28" />}
-          text="Overtime Form"
-          to="/overtimeForm"
-          isActive={location.pathname === "/overtimeForm"}
-        />
-        <SideBarIcon
-          icon={<FaClipboardList size="28" />}
-          text="Overtime List"
-          to="/overtimeList"
-          isActive={location.pathname === "/overtimeList"}
-        />
-        <SideBarIcon
-          icon={<TbReport size="28" />}
-          text="Monthly Report"
-          to="/monthlyReport"
-          isActive={location.pathname === "/monthlyReport"}
-        />
-        <SideBarIcon
-          icon={<PiFingerprintBold size="28" />}
-          text="Scanner Converter"
-          to="/scannerConverter"
-          isActive={location.pathname === "/scannerConverter"}
-        />
+    <div>
+      <div className="overflow-y-scroll sticky top-4 h-[calc(100vh-32px-48px)]">
+        <AccountInfo />
+        <div className="space-y-1">
+          <Route
+            to="/dashboard"
+            title="Dashboard"
+            icon={<AiFillAppstore className="text-violet-500" />}
+            selected={location.pathname === "/dashboard"}
+          />
+          <Route
+            to="/userManager"
+            title="User Manager"
+            icon={<FaUsers />}
+            selected={location.pathname === "/userManager"}
+          />
+          <Route
+            to="/employeeManagement"
+            title="Employees"
+            icon={<GrUserWorker />}
+            selected={location.pathname === "/employeeManagement"}
+          />
+          <Route
+            to="/overtimeForm"
+            title="Overtime Form"
+            icon={<FaWpforms />}
+            selected={location.pathname === "/overtimeForm"}
+          />
+          <Route
+            to="/overtimeList"
+            title="Overtime List"
+            icon={<FaClipboardList />}
+            selected={location.pathname === "/overtimeList"}
+          />
+          <Route
+            to="/monthlyReport"
+            title="Monthly Report"
+            icon={<TbReport />}
+            selected={location.pathname === "/monthlyReport"}
+          />
+          <Route
+            to="/scannerConverter"
+            title="Scanner Converter"
+            icon={<PiFingerprintBold />}
+            selected={location.pathname === "/scannerConverter"}
+          />
+        </div>
       </div>
+      <div className="flex sticky top-[calc(100vh_-_48px_-_16px)] flex-col h-12 border-t px-2 border-stone-300 justify-end text-xs">
+        <div className="flex items-center justify-between">
+          <div>
+            <Tooltip
+              title={
+                <div>
+                  <span>
+                    {latency !== null ? `Ping: ${latency} ms` : `No Connection`}
+                  </span>
+                  <br />
+                  <span>
+                    {getDbIcon(dbStatus)} {getDbStatusDisplay()}
+                  </span>
+                </div>
+              }
+            >
+              <p className="font-bold">
+                {latency !== null ? (
+                  getSignalIcon(latency)
+                ) : (
+                  <BsWifiOff className={`text-gray-400 ${signalIconSize}`} />
+                )}
+              </p>
+            </Tooltip>
+          </div>
 
-      {/* Logout icon and status icon */}
-      <div className="flex flex-col mb-6">
-        <SideBarIcon
-          icon={
-            latency !== null ? (
-              getSignalIcon(latency)
-            ) : (
-              <BsWifiOff className="text-gray-400 text-3xl" />
-            )
-          }
-          text={
-            <div className="flex flex-col items-start whitespace-pre-line">
-              <span>
-                {latency !== null ? `Ping: ${latency} ms` : `No Connection`}
-              </span>
-              <span className="flex items-center gap-1">
-                {getDbIcon(dbStatus)} {getDbStatusDisplay()}
-              </span>
-            </div>
-          }
-        />
-        <SideBarIcon
-          icon={<IoLogOut size="28" />}
-          text="Logout"
-          onClick={logout}
-        />
+          <button
+            className="px-2 py-1.5 font-medium bg-stone-200 hover:bg-stone-300 transition-colors rounded"
+            onClick={logout}
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-const SideBarIcon = ({ icon, text = "tooltip", to, onClick, isActive }) => {
-  const baseClasses = "sidebar-icon group";
-  const activeClasses = isActive ? " bg-secondary text-white scale-105" : "";
-
-  const content = (
-    <div className={`${baseClasses}${activeClasses}`}>
-      {icon}
-      {!isActive && (
-        <span className="sidebar-tooltip group-hover:scale-100">{text}</span>
-      )}
-    </div>
+const Route = ({ to, icon, title, selected }) => {
+  return (
+    <Link
+      to={to}
+      className={`flex items-center justify-start gap-2 w-full rounded px-2 py-1.5 text-sm transition-[box-shadow,_background-color,_color] ${
+        selected
+          ? "bg-white text-stone-950 shadow"
+          : "hover:bg-stone-200 bg-transparent text-stone-500 shadow-none"
+      }`}
+    >
+      {icon && <span>{icon}</span>}
+      <span>{title}</span>
+    </Link>
   );
-
-  if (to) {
-    return <Link to={to}>{content}</Link>;
-  }
-
-  if (onClick) {
-    return (
-      <div onClick={onClick} className="cursor-pointer">
-        {content}
-      </div>
-    );
-  }
-
-  return content;
 };

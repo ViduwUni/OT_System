@@ -13,6 +13,10 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import TopBar from "../components/TopBar";
+import { MdCalendarMonth } from "react-icons/md";
+import { TbClockHour10Filled } from "react-icons/tb";
+import { FaHelmetSafety } from "react-icons/fa6";
 
 const COLORS = [
   "#0088FE",
@@ -91,69 +95,101 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="w-full px-4 py-6 space-y-8 flex flex-row flex-wrap">
-      {/* Employee List */}
-      <div className="w-full">
-        <h3 className="text-xl font-semibold mb-2">👥 Employees</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-auto border border-gray-200">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-4 py-2 border">No</th>
-                <th className="px-4 py-2 border">Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              {employees.map((emp) => (
-                <tr key={emp._id} className="border-t">
-                  <td className="px-4 py-2 border">{emp.employee_no}</td>
-                  <td className="px-4 py-2 border">{emp.employee_name}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <div className="bg-white rounded-lg pb-4 shadow h-[95vh]">
+      <TopBar />
+
+      <div className="px-4 grid gap-3 grid-cols-12">
+        <div className="col-span-8 overflow-hidden rounded border border-stone-300">
+          <div className="p-4">
+            <h3 className="flex items-center gap-1.5 font-medium">
+              <MdCalendarMonth /> Monthly OT Hours
+            </h3>
+          </div>
+
+          <div className="h-64 px-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="totalHours" fill="#8884d8" name="Total OT" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </div>
 
-      {/* Monthly OT Chart */}
-      <div className="w-full">
-        <h3 className="text-xl font-semibold mb-4">📅 Monthly OT Hours</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={monthlyData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="totalHours" fill="#8884d8" name="Total OT" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+        <div className="col-span-4 overflow-hidden rounded border border-stone-300">
+          <div className="p-4">
+            <h3 className="flex items-center gap-1.5 font-medium">
+              <TbClockHour10Filled /> OT Hours by Employee
+            </h3>
+          </div>
 
-      {/* OT by Employee Chart */}
-      <div className="w-full">
-        <h3 className="text-xl font-semibold mb-4">🏆 OT Hours by Employee</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={otByEmployee}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={100}
-              label
-            >
-              {otByEmployee.map((_, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        </ResponsiveContainer>
+          <div className="h-64 px-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={otByEmployee}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label
+                >
+                  {otByEmployee.map((_, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="col-span-12 p-4 rounded border border-stone-300">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="flex items-center gap-1.5 font-medium">
+              <FaHelmetSafety /> Employees
+            </h3>
+          </div>
+          <div className="max-h-[12rem] overflow-y-auto rounded border border-stone-200">
+            <table className="w-full table-auto border border-stone-300 rounded overflow-hidden">
+              <thead>
+                <tr className="bg-stone-100 text-sm font-medium text-stone-600">
+                  <th className="text-left px-4 py-2 border-b border-stone-300">
+                    No
+                  </th>
+                  <th className="text-left px-4 py-2 border-b border-stone-300">
+                    Name
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {employees.map((emp, index) => (
+                  <tr
+                    key={emp._id}
+                    className={`${
+                      index % 2 === 0 ? "bg-white" : "bg-stone-50"
+                    } hover:bg-stone-100`}
+                  >
+                    <td className="px-4 py-2 border-b border-stone-200">
+                      {emp.employee_no}
+                    </td>
+                    <td className="px-4 py-2 border-b border-stone-200">
+                      {emp.employee_name}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );

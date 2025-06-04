@@ -17,7 +17,7 @@ import ScannerConverter from './utils/ScannerConverter';
 
 function App() {
   return (
-    <div className='flex'>
+    <div>
       <AuthProvider>
         <Router>
           <ToastContainer autoClose={4000} />
