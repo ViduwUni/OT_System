@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_BASE = `http://${process.env.REACT_APP_BACKEND_IP}:5000/api/overtime`;
-const EMPLOYEE_API = `http://${process.env.REACT_APP_BACKEND_IP}:5000/api/employee`;
+const API_BASE = `http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/overtime`;
+const EMPLOYEE_API = `http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/employee`;
 
 function OvertimeList() {
     const [entries, setEntries] = useState([]);
@@ -264,7 +264,7 @@ function OvertimeList() {
         <>
             <h2>Overtime Entries</h2>
 
-            <div style={{ marginBottom: 20 }}>
+            <div>
                 <label>
                     Employee:&nbsp;
                     <select
@@ -315,7 +315,6 @@ function OvertimeList() {
                             value={filterDate}
                             onChange={handleYearChange}
                             placeholder="YYYY"
-                            style={{ width: 80 }}
                         />
                     ) : (
                         <input
@@ -327,12 +326,12 @@ function OvertimeList() {
                 </label>
             </div>
 
-            <div style={{ marginTop: 20, fontWeight: "bold" }}>
+            <div>
                 Total Confirmed Overtime Hours: {totalOTs}
             </div>
 
             {filteredEntries.length > 0 && (
-                <div style={{ marginTop: 10 }}>
+                <div>
                     <label>
                         Set Approval Stage:&nbsp;
                         <select
@@ -351,7 +350,7 @@ function OvertimeList() {
             {loading ? (
                 <p>Loading entries...</p>
             ) : error ? (
-                <p style={{ color: "red" }}>{error}</p>
+                <p>{error}</p>
             ) : filteredEntries.length === 0 ? (
                 <p>No overtime entries found.</p>
             ) : (
@@ -497,7 +496,7 @@ function OvertimeList() {
                                         </td>
                                         <td>
                                             <button onClick={saveEdit}>Save</button>
-                                            <button onClick={cancelEdit} style={{ marginLeft: 8 }}>
+                                            <button onClick={cancelEdit}>
                                                 Cancel
                                             </button>
                                         </td>
@@ -518,7 +517,7 @@ function OvertimeList() {
                                         <td>{e.reason}</td>
                                         <td>{e.approval_stage}</td>
                                         <td>
-                                            <button onClick={() => startEdit(e)} style={{ marginRight: 10 }}>
+                                            <button onClick={() => startEdit(e)}>
                                                 Edit
                                             </button>
                                             <button onClick={() => handleDelete(e._id)}>Delete</button>

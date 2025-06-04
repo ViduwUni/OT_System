@@ -3,8 +3,7 @@ import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 
-import './css/Login.css';
-import Logo from '../includes/images/Logo_Big_Without_Backgorund.svg';
+import Logo from '../assets/images/Logo_Big_Without_Backgorund.svg';
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -15,7 +14,7 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/auth/login`, { email, password });
+            const res = await axios.post(`http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/auth/login`, { email, password });
             login(res.data.token);
             navigate('/dashboard');
         } catch (err) {
@@ -24,22 +23,22 @@ export default function Login() {
     };
 
     return (
-        <div className="login-page">
-            <div className="login-container">
-                <div className="login-left">
-                    <img src={Logo} alt="Logo" className="login-logo" />
+        <div>
+            <div>
+                <div>
+                    <img src={Logo} alt="Logo" />
                 </div>
-                <div className="login-right">
-                    <form onSubmit={handleSubmit} className="login-form">
+                <div>
+                    <form onSubmit={handleSubmit}>
                         <h2>Login</h2>
-                        <div className="input-group">
+                        <div>
                             <input type="email" onChange={e => setEmail(e.target.value)} placeholder="Email" required />
                         </div>
-                        <div className="input-group">
+                        <div>
                             <input type="password" onChange={e => setPassword(e.target.value)} placeholder="Password" required />
                         </div>
                         <button type="submit">Login</button>
-                        <p className="register-link">Don't have an account? <Link to="/register">Register</Link></p>
+                        <p>Don't have an account? <Link to="/register">Register</Link></p>
                     </form>
                 </div>
             </div>

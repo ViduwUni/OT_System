@@ -10,7 +10,7 @@ const UserManager = () => {
 
     const fetchUsers = async () => {
         try {
-            const res = await axios.get(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/auth/users`);
+            const res = await axios.get(`http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/auth/users`);
             setUsers(res.data);
         } catch (err) {
             console.error("Error fetching users:", err);
@@ -29,10 +29,10 @@ const UserManager = () => {
         e.preventDefault();
         try {
             if (editingId) {
-                await axios.put(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/auth/users/${editingId}`, form);
+                await axios.put(`http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/auth/users/${editingId}`, form);
                 setEditingId(null);
             } else {
-                await axios.post(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/auth/register`, form);
+                await axios.post(`http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/auth/register`, form);
             }
             setForm({ name: "", email: "", password: "", role: "manager(hr)" });
             fetchUsers();
@@ -53,7 +53,7 @@ const UserManager = () => {
 
     const confirmDelete = async () => {
         try {
-            await axios.delete(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/auth/users/${deleteUserId}`);
+            await axios.delete(`http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/auth/users/${deleteUserId}`);
             setConfirmOpen(false);
             setDeleteUserId(null);
             fetchUsers();

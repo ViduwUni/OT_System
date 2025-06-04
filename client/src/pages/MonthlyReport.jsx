@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 
-import './css/MonthlyReport.css';
-
 function MonthlyReport() {
     const [report, setReport] = useState([]);
     const [expandedEmployee, setExpandedEmployee] = useState(null);
@@ -24,7 +22,7 @@ function MonthlyReport() {
     const fetchReport = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`http://${process.env.REACT_APP_BACKEND_IP}:5000/api/overtime/monthly-report`, {
+            const res = await axios.get(`http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/overtime/monthly-report`, {
                 params: {
                     startDate,
                     endDate
@@ -125,7 +123,7 @@ function MonthlyReport() {
     };
 
     return (
-        <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+        <div>
             <h2>Monthly OT Report</h2>
 
             <label>
@@ -150,15 +148,6 @@ function MonthlyReport() {
 
             <button
                 onClick={exportToExcel}
-                style={{
-                    marginLeft: '20px',
-                    padding: '6px 12px',
-                    backgroundColor: '#4CAF50',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                }}
             >
                 Export to Excel
             </button>
@@ -166,12 +155,12 @@ function MonthlyReport() {
             {loading ? (
                 <p>Loading...</p>
             ) : error ? (
-                <p style={{ color: 'red' }}>{error}</p>
+                <p>{error}</p>
             ) : report.length === 0 ? (
                 <p>No data found for selected date range.</p>
             ) : (
-                <table border="1" cellPadding="10" cellSpacing="0" style={{ marginTop: '20px', borderCollapse: 'collapse', width: '100%' }}>
-                    <thead style={{ backgroundColor: '#f0f0f0' }}>
+                <table border="1" cellPadding="10" cellSpacing="0">
+                    <thead>
                         <tr>
                             <th>Employee No</th>
                             <th>Name</th>
@@ -193,7 +182,7 @@ function MonthlyReport() {
 
                             return (
                                 <React.Fragment key={key}>
-                                    <tr onClick={() => toggleExpand(entry.employee_no)} style={{ cursor: 'pointer', backgroundColor: expandedEmployee === entry.employee_no ? '#f9f9f9' : 'white' }}>
+                                    <tr onClick={() => toggleExpand(entry.employee_no)}>
                                         <td>{entry.employee_no}</td>
                                         <td>{entry.employee_name}</td>
                                         <td>{normal.toFixed(2)}</td>
@@ -205,8 +194,8 @@ function MonthlyReport() {
                                     {expandedEmployee === entry.employee_no && entry.entries && entry.entries.length > 0 && (
                                         <tr>
                                             <td colSpan="7">
-                                                <table border="1" cellPadding="8" cellSpacing="0" style={{ width: '100%', marginTop: '10px' }}>
-                                                    <thead style={{ backgroundColor: '#e0e0e0' }}>
+                                                <table border="1" cellPadding="8" cellSpacing="0">
+                                                    <thead>
                                                         <tr>
                                                             <th>Employee No</th>
                                                             <th>Name</th>
