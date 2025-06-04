@@ -174,7 +174,7 @@ function OvertimeList() {
             );
             alert("Bulk approval successful.");
         } catch (err) {
-            alert("Bulk approval failed.");
+            alert("Bulk approval failed.", err);
         }
     };
 

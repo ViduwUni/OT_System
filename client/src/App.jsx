@@ -2,14 +2,16 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import GAListener from './utils/GAListener';
+import { ToastContainer } from 'react-toastify';
+import "react-toastify/dist/ReactToastify.css";
 
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import UserManager from './pages/UserManager';
 import EmployeeManagement from './pages/EmployeeManagement';
-import OvertimeList from './components/OvertimeList';
-import OvertimeForm from './components/OvertimeForm';
+import OvertimeList from './pages/OvertimeList';
+import OvertimeForm from './pages/OvertimeForm';
 import MonthlyReport from './pages/MonthlyReport';
 import ScannerConverter from './utils/ScannerConverter';
 
@@ -18,6 +20,7 @@ function App() {
     <div className='flex'>
       <AuthProvider>
         <Router>
+          <ToastContainer autoClose={4000} />
           <GAListener />
           <Routes>
             <Route path="/" element={<Login />} />

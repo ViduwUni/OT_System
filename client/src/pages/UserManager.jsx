@@ -68,29 +68,29 @@ const UserManager = () => {
     };
 
     return (
-        <div className="p-4 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6 text-center">User Manager</h1>
+        <div className="w-full px-4 py-6 space-y-8 flex flex-row flex-wrap">
+            <h1>User Manager</h1>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-3 mb-8 bg-gray-100 p-4 rounded shadow">
-                <input className="w-full p-2 border rounded" name="name" placeholder="Name" value={form.name} onChange={handleChange} required />
-                <input className="w-full p-2 border rounded" name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required />
-                <input className="w-full p-2 border rounded" name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} required={!editingId} />
-                <select className="w-full p-2 border rounded" name="role" value={form.role} onChange={handleChange}>
+            <form onSubmit={handleSubmit} className="w-full">
+                <input name="name" placeholder="Name" value={form.name} onChange={handleChange} required />
+                <input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required />
+                <input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} required={!editingId} />
+                <select name="role" value={form.role} onChange={handleChange}>
                     <option>manager(hr)</option>
                     <option>supervisor(hr)</option>
                     <option>supervisor(production)</option>
                     <option>manager(production)</option>
                 </select>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded" type="submit">
+                <button type="submit">
                     {editingId ? "Update User" : "Add User"}
                 </button>
             </form>
 
             {/* Table */}
-            <table className="w-full table-auto border border-collapse">
+            <table className="w-full">
                 <thead>
-                    <tr className="bg-gray-200">
+                    <tr>
                         <th className="p-2 border">Name</th>
                         <th className="p-2 border">Email</th>
                         <th className="p-2 border">Role</th>
@@ -99,7 +99,7 @@ const UserManager = () => {
                 </thead>
                 <tbody>
                     {users.map(user => (
-                        <tr key={user._id} className="hover:bg-gray-50">
+                        <tr key={user._id}>
                             <td className="p-2 border">{user.name}</td>
                             <td className="p-2 border">{user.email}</td>
                             <td className="p-2 border">{user.role}</td>
@@ -114,11 +114,11 @@ const UserManager = () => {
 
             {/* Confirmation Modal */}
             {confirmOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-                        <h2 className="text-lg font-semibold mb-4">Confirm Deletion</h2>
-                        <p className="mb-6">Are you sure you want to delete this user?</p>
-                        <div className="flex justify-end space-x-4">
+                <div className="w-full">
+                    <div>
+                        <h2>Confirm Deletion</h2>
+                        <p>Are you sure you want to delete this user?</p>
+                        <div>
                             <button onClick={cancelDelete} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
                             <button onClick={confirmDelete} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Delete</button>
                         </div>
