@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import TopBar from '../components/TopBar';
+
+import { MdManageAccounts } from "react-icons/md";
 
 const EmployeeManagement = () => {
     const [employees, setEmployees] = useState([]);
@@ -47,39 +50,59 @@ const EmployeeManagement = () => {
     };
 
     return (
-        <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">Employee Management</h2>
-            <form onSubmit={handleSubmit} className="space-x-2 mb-4">
-                <input type="text" name="employee_no" value={form.employee_no}
-                    onChange={handleChange} placeholder="Employee No" required />
-                <input type="text" name="employee_name" value={form.employee_name}
-                    onChange={handleChange} placeholder="Employee Name" required />
-                <button type="submit" className="bg-blue-500 text-white px-3 py-1 rounded">
-                    {editingId ? 'Update' : 'Add'}
-                </button>
-            </form>
+        <div className="bg-white rounded-lg pb-4 shadow h-[90vh] overflow-y-hidden">
+            <TopBar />
 
-            <table className="table-auto w-full border">
-                <thead>
-                    <tr className="bg-gray-100">
-                        <th className="border px-2">No</th>
-                        <th className="border px-2">Name</th>
-                        <th className="border px-2">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {employees.map((emp, i) => (
-                        <tr key={emp._id}>
-                            <td className="border px-2">{emp.employee_no}</td>
-                            <td className="border px-2">{emp.employee_name}</td>
-                            <td className="border px-2 space-x-2">
-                                <button onClick={() => handleEdit(emp)} className="text-blue-500">Edit</button>
-                                <button onClick={() => handleDelete(emp._id)} className="text-red-500">Delete</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <div className="px-4 grid gap-3 grid-cols-12">
+                <div className="col-span-12 p-4 rounded border border-stone-300">
+                    <div className="mb-4 flex items-center justify-between">
+                        <h3 className="flex items-center gap-1.5 font-medium">
+                            <MdManageAccounts /> Employee Management Form
+                        </h3>
+                    </div>
+                    <div className="max-h-[9rem] overflow-y-auto rounded border border-stone-200 p-2">
+                        <form onSubmit={handleSubmit} className="flex flex-wrap gap-2 items-start">
+                            <input type="text" name="employee_no" value={form.employee_no}
+                                onChange={handleChange} placeholder="Employee No" required className="border p-1 rounded" />
+                            <input type="text" name="employee_name" value={form.employee_name}
+                                onChange={handleChange} placeholder="Employee Name" required className="border p-1 rounded" />
+                            <button type="submit" className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+                                {editingId ? 'Update' : 'Add'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div className="col-span-12 p-4 rounded border border-stone-300 h-[70%]">
+                    <div className="mb-4 flex items-center justify-between">
+                        {/* Anything else like title/buttons here */}
+                    </div>
+
+                    <div className="overflow-x-auto max-h-[85%]">
+                        <table className="min-w-full">
+                            <thead className="sticky top-0 z-10">
+                                <tr className="bg-gray-100">
+                                    <th className="p-2 border">No</th>
+                                    <th className="p-2 border">Name</th>
+                                    <th className="p-2 border">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {employees.map((emp, i) => (
+                                    <tr key={emp._id}>
+                                        <td className="p-2 border whitespace-nowrap">{emp.employee_no}</td>
+                                        <td className="p-2 border whitespace-nowrap">{emp.employee_name}</td>
+                                        <td className="p-2 border whitespace-nowrap space-x-2">
+                                            <button onClick={() => handleEdit(emp)} className="text-blue-600 hover:underline">Edit</button>
+                                            <button onClick={() => handleDelete(emp._id)} className="text-red-600 hover:underline">Delete</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

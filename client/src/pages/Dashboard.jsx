@@ -158,7 +158,7 @@ export default function Dashboard() {
               <FaHelmetSafety /> Employees
             </h3>
           </div>
-          <div className="max-h-[12rem] overflow-y-auto rounded border border-stone-200">
+          <div className="max-h-[9rem] overflow-y-auto rounded border border-stone-200">
             <table className="w-full table-auto border border-stone-300 rounded overflow-hidden">
               <thead>
                 <tr className="bg-stone-100 text-sm font-medium text-stone-600">

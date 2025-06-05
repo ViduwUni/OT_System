@@ -3,11 +3,14 @@ import { AuthContext } from "../context/AuthContext";
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import Greeting from "../utils/Greeting";
+import { GreetingInfo } from "../utils/GreetingInfo";
+
+import { FiSun, FiMoon } from "react-icons/fi";
 
 export default function TopBar() {
-  const API_BASE = `http://${
-    import.meta.env.VITE_APP_BACKEND_IP
-  }:5000/api/overtime`;
+  const { hour } = GreetingInfo();
+  const API_BASE = `http://${import.meta.env.VITE_APP_BACKEND_IP
+    }:5000/api/overtime`;
   const [notifications, setNotifications] = useState([]);
   const { user } = useContext(AuthContext);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -63,17 +66,18 @@ export default function TopBar() {
     <div className="border-b px-4 mb-4 mt-2 pb-4 border-stone-200">
       <div className="flex items-center justify-between p-0.5">
         <div>
-          <span className="text-sm font-bold block">
+          <span className="text-sm font-bold flex items-center gap-2">
             <Greeting name={user?.name} />
+            {hour >= 6 && hour < 18 ? <FiSun className="text-yellow-500" /> : <FiMoon className="text-blue-500" />}
           </span>
           <span className="text-xs block text-stone-500">
             {currentTime.toLocaleString("en-US", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit"
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit"
             })}
           </span>
         </div>

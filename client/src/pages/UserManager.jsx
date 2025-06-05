@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import TopBar from "../components/TopBar";
+
+import { MdManageAccounts } from "react-icons/md";
 
 const UserManager = () => {
     const [users, setUsers] = useState([]);
@@ -68,63 +71,101 @@ const UserManager = () => {
     };
 
     return (
-        <div className="w-full px-4 py-6 space-y-8 flex flex-row flex-wrap">
-            <h1>User Manager</h1>
+        <div className="bg-white rounded-lg pb-4 shadow h-[90vh] overflow-y-hidden">
+            <TopBar />
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="w-full">
-                <input name="name" placeholder="Name" value={form.name} onChange={handleChange} required />
-                <input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required />
-                <input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} required={!editingId} />
-                <select name="role" value={form.role} onChange={handleChange}>
-                    <option>manager(hr)</option>
-                    <option>supervisor(hr)</option>
-                    <option>supervisor(production)</option>
-                    <option>manager(production)</option>
-                </select>
-                <button type="submit">
-                    {editingId ? "Update User" : "Add User"}
-                </button>
-            </form>
-
-            {/* Table */}
-            <table className="w-full">
-                <thead>
-                    <tr>
-                        <th className="p-2 border">Name</th>
-                        <th className="p-2 border">Email</th>
-                        <th className="p-2 border">Role</th>
-                        <th className="p-2 border">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {users.map(user => (
-                        <tr key={user._id}>
-                            <td className="p-2 border">{user.name}</td>
-                            <td className="p-2 border">{user.email}</td>
-                            <td className="p-2 border">{user.role}</td>
-                            <td className="p-2 border space-x-2">
-                                <button onClick={() => handleEdit(user)} className="text-blue-600 hover:underline">Edit</button>
-                                <button onClick={() => handleDeleteClick(user._id)} className="text-red-600 hover:underline">Delete</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-
-            {/* Confirmation Modal */}
-            {confirmOpen && (
-                <div className="w-full">
-                    <div>
-                        <h2>Confirm Deletion</h2>
-                        <p>Are you sure you want to delete this user?</p>
-                        <div>
-                            <button onClick={cancelDelete} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
-                            <button onClick={confirmDelete} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Delete</button>
-                        </div>
+            <div className="px-4 grid gap-3 grid-cols-12">
+                <div className="col-span-12 p-4 rounded border border-stone-300">
+                    <div className="mb-4 flex items-center justify-between">
+                        <h3 className="flex items-center gap-1.5 font-medium">
+                            <MdManageAccounts /> User Management Form
+                        </h3>
+                    </div>
+                    <div className="max-h-[9rem] overflow-y-auto rounded border border-stone-200 p-2">
+                        <form onSubmit={handleSubmit} className="flex flex-wrap gap-2 items-start">
+                            <input
+                                name="name"
+                                placeholder="Name"
+                                value={form.name}
+                                onChange={handleChange}
+                                required
+                                className="border p-1 rounded"
+                            />
+                            <input
+                                name="email"
+                                type="email"
+                                placeholder="Email"
+                                value={form.email}
+                                onChange={handleChange}
+                                required
+                                className="border p-1 rounded"
+                            />
+                            <input
+                                name="password"
+                                type="password"
+                                placeholder="Password"
+                                value={form.password}
+                                onChange={handleChange}
+                                required={!editingId}
+                                className="border p-1 rounded"
+                            />
+                            <select
+                                name="role"
+                                value={form.role}
+                                onChange={handleChange}
+                                className="border p-1 rounded"
+                            >
+                                <option>manager(hr)</option>
+                                <option>supervisor(hr)</option>
+                                <option>supervisor(production)</option>
+                                <option>manager(production)</option>
+                            </select>
+                            <button
+                                type="submit"
+                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                            >
+                                {editingId ? "Update User" : "Add User"}
+                            </button>
+                        </form>
                     </div>
                 </div>
-            )}
+
+                <div className="col-span-12 p-4 rounded border border-stone-300 h-[70%]">
+                    <div className="mb-4 flex items-center justify-between">
+                        {/* Anything else like title/buttons here */}
+                    </div>
+
+                    <div className="overflow-x-auto max-h-[80%]">
+                        <table className="min-w-full">
+                            <thead className="sticky top-0 z-10 bg-gray-100">
+                                <tr>
+                                    <th className="p-2 border">Name</th>
+                                    <th className="p-2 border">Email</th>
+                                    <th className="p-2 border">Role</th>
+                                    <th className="p-2 border">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {users.map(user => (
+                                    <tr key={user._id}>
+                                        <td className="p-2 border whitespace-nowrap">{user.name}</td>
+                                        <td className="p-2 border whitespace-nowrap">{user.email}</td>
+                                        <td className="p-2 border whitespace-nowrap">{user.role}</td>
+                                        <td className="p-2 border whitespace-nowrap space-x-2">
+                                            <button onClick={() => handleEdit(user)} className="text-blue-600 hover:underline">
+                                                Edit
+                                            </button>
+                                            <button onClick={() => handleDeleteClick(user._id)} className="text-red-600 hover:underline">
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

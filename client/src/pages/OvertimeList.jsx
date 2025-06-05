@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import TopBar from '../components/TopBar'
+
+import { IoTime } from "react-icons/io5";
 
 const API_BASE = `http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/overtime`;
 const EMPLOYEE_API = `http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/employee`;
@@ -153,7 +156,7 @@ function OvertimeList() {
                 `Are you sure you want to set approval stage to "${bulkApprovalStage}" for all filtered entries?`
             )
         )
-        return;
+            return;
 
         try {
             const updates = filteredEntries.map((entry) =>
@@ -261,275 +264,356 @@ function OvertimeList() {
     );
 
     return (
-        <>
-            <h2>Overtime Entries</h2>
+        <div className="bg-white rounded-lg pb-4 shadow overflow-y-hidden">
+            {/* Top bar (if you have one) */}
+            <TopBar />
 
-            <div>
-                <label>
-                    Employee:&nbsp;
-                    <select
-                        value={filterEmployee}
-                        onChange={(e) => setFilterEmployee(e.target.value)}
-                    >
-                        <option value="">All Employees</option>
-                        {employees.map((emp) => (
-                            <option key={emp._id} value={emp.employee_no}>
-                                {emp.employee_no} - {emp.employee_name}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+            <div className="px-4 grid gap-3 grid-cols-12">
+                {/* Filter & controls section */}
+                <div className="col-span-12 p-4 rounded border border-stone-300">
+                    <div className="mb-4 flex items-center justify-between">
+                        <h3 className="flex items-center gap-1.5 font-medium">
+                            <IoTime /> Overtime Entries
+                        </h3>
+                    </div>
 
-                &nbsp;&nbsp;
+                    <div className="max-h-[10rem] overflow-y-auto rounded border border-stone-200 p-2 space-y-3">
+                        {/* Filters */}
+                        <div className="flex flex-wrap gap-4 items-center">
+                            {/* Employee Filter */}
+                            <label className="flex items-center">
+                                <span className="mr-2 font-medium">Employee:</span>
+                                <select
+                                    value={filterEmployee}
+                                    onChange={(e) => setFilterEmployee(e.target.value)}
+                                    className="border p-1 rounded"
+                                >
+                                    <option value="">All Employees</option>
+                                    {employees.map((emp) => (
+                                        <option key={emp._id} value={emp.employee_no}>
+                                            {emp.employee_no} - {emp.employee_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
 
-                <label>
-                    Period:&nbsp;
-                    <select
-                        value={filterPeriod}
-                        onChange={(e) => {
-                            setFilterPeriod(e.target.value);
-                            const now = new Date();
-                            if (e.target.value === "daily") {
-                                setFilterDate(now.toISOString().slice(0, 10));
-                            } else if (e.target.value === "monthly") {
-                                setFilterDate(now.toISOString().slice(0, 7));
-                            } else if (e.target.value === "yearly") {
-                                setFilterDate(now.getFullYear().toString());
-                            }
-                        }}
-                    >
-                        <option value="daily">Daily</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                    </select>
-                </label>
+                            {/* Period Filter */}
+                            <label className="flex items-center">
+                                <span className="mr-2 font-medium">Period:</span>
+                                <select
+                                    value={filterPeriod}
+                                    onChange={(e) => {
+                                        setFilterPeriod(e.target.value);
+                                        const now = new Date();
+                                        if (e.target.value === "daily") {
+                                            setFilterDate(now.toISOString().slice(0, 10));
+                                        } else if (e.target.value === "monthly") {
+                                            setFilterDate(now.toISOString().slice(0, 7));
+                                        } else if (e.target.value === "yearly") {
+                                            setFilterDate(now.getFullYear().toString());
+                                        }
+                                    }}
+                                    className="border p-1 rounded"
+                                >
+                                    <option value="daily">Daily</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
+                            </label>
 
-                &nbsp;&nbsp;
-
-                <label>
-                    Date:&nbsp;
-                    {filterPeriod === "yearly" ? (
-                        <input
-                            type="text"
-                            maxLength="4"
-                            value={filterDate}
-                            onChange={handleYearChange}
-                            placeholder="YYYY"
-                        />
-                    ) : (
-                        <input
-                            type={getDateInputType()}
-                            value={filterDate}
-                            onChange={(e) => setFilterDate(e.target.value)}
-                        />
-                    )}
-                </label>
-            </div>
-
-            <div>
-                Total Confirmed Overtime Hours: {totalOTs}
-            </div>
-
-            {filteredEntries.length > 0 && (
-                <div>
-                    <label>
-                        Set Approval Stage:&nbsp;
-                        <select
-                            value={bulkApprovalStage}
-                            onChange={(e) => setBulkApprovalStage(e.target.value)}
-                        >
-                            <option value="approved(production)">Approved (Production)</option>
-                            <option value="final_approved(hr)">Final Approved (HR)</option>
-                        </select>
-                    </label>
-                    &nbsp;&nbsp;
-                    <button onClick={handleBulkApprove}>Bulk Approve</button>
-                </div>
-            )}
-
-            {loading ? (
-                <p>Loading entries...</p>
-            ) : error ? (
-                <p>{error}</p>
-            ) : filteredEntries.length === 0 ? (
-                <p>No overtime entries found.</p>
-            ) : (
-                <>
-                    <table border="1" cellPadding="10" cellSpacing="0" width="100%">
-                        <thead>
-                            <tr>
-                                <th>Employee No</th>
-                                <th>Name</th>
-                                <th>Date</th>
-                                <th>In Time</th>
-                                <th>Out Time</th>
-                                <th>Ot_normal_hours</th>
-                                <th>Ot_double_hours</th>
-                                <th>Ot_triple_hours</th>
-                                <th>Total Ot Hours</th>
-                                <th>Night Shift</th>
-                                <th>Confirmed Hours</th>
-                                <th>Reason</th>
-                                <th>Approval Stage</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredEntries.map((e) =>
-                                editId === e._id ? (
-                                    <tr key={e._id}>
-                                        <td>
-                                            <select
-                                                name="employee_no"
-                                                value={editForm.employee_no}
-                                                onChange={handleEditChange}
-                                            >
-                                                <option value="">Select Employee</option>
-                                                {employees.map((emp) => (
-                                                    <option key={emp._id} value={emp.employee_no}>
-                                                        {emp.employee_no} - {emp.employee_name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="text"
-                                                name="employee_name"
-                                                value={editForm.employee_name}
-                                                readOnly
-                                            />
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="date"
-                                                name="date"
-                                                value={editForm.date}
-                                                onChange={handleEditChange}
-                                            />
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="datetime-local"
-                                                name="inTime"
-                                                value={editForm.inTime}
-                                                onChange={handleEditChange}
-                                            />
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="datetime-local"
-                                                name="outTime"
-                                                value={editForm.outTime}
-                                                onChange={handleEditChange}
-                                            />
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="number"
-                                                name="ot_normal_hours"
-                                                value={editForm.ot_normal_hours}
-                                                onChange={handleEditChange}
-                                                disabled
-                                            />
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="number"
-                                                name="ot_double_hours"
-                                                value={editForm.ot_double_hours}
-                                                onChange={handleEditChange}
-                                                disabled
-                                            />
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="number"
-                                                name="ot_triple_hours"
-                                                value={editForm.ot_triple_hours}
-                                                onChange={handleEditChange}
-                                                disabled
-                                            />
-                                        </td>
-                                        <td>
-                                            {Number(editForm.ot_normal_hours || 0) +
-                                                Number(editForm.ot_double_hours || 0) +
-                                                Number(editForm.ot_triple_hours || 0)}
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="checkbox"
-                                                name="isNightShift"
-                                                checked={editForm.isNightShift}
-                                                onChange={handleEditChange}
-                                                disabled
-                                            />
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="number"
-                                                name="confirmed_hours"
-                                                value={editForm.confirmed_hours}
-                                                onChange={handleEditChange}
-                                                min="0"
-                                                step="0.1"
-                                            />
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="text"
-                                                name="reason"
-                                                value={editForm.reason}
-                                                onChange={handleEditChange}
-                                            />
-                                        </td>
-                                        <td>
-                                            <select
-                                                name="approval_stage"
-                                                value={editForm.approval_stage}
-                                                onChange={handleEditChange}
-                                            >
-                                                <option value="pending">Pending</option>
-                                                <option value="approved(production)">Approved (Production)</option>
-                                                <option value="final_approved(hr)">Final Approved (HR)</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <button onClick={saveEdit}>Save</button>
-                                            <button onClick={cancelEdit}>
-                                                Cancel
-                                            </button>
-                                        </td>
-                                    </tr>
+                            {/* Date Filter */}
+                            <label className="flex items-center">
+                                <span className="mr-2 font-medium">Date:</span>
+                                {filterPeriod === "yearly" ? (
+                                    <input
+                                        type="text"
+                                        maxLength="4"
+                                        value={filterDate}
+                                        onChange={handleYearChange}
+                                        placeholder="YYYY"
+                                        className="border p-1 rounded w-20"
+                                    />
                                 ) : (
-                                    <tr key={e._id}>
-                                        <td>{e.employee_no}</td>
-                                        <td>{e.employee_name}</td>
-                                        <td>{new Date(e.date).toLocaleDateString()}</td>
-                                        <td>{new Date(e.inTime).toLocaleString()}</td>
-                                        <td>{new Date(e.outTime).toLocaleString()}</td>
-                                        <td>{e.ot_normal_hours}</td>
-                                        <td>{e.ot_double_hours}</td>
-                                        <td>{e.ot_triple_hours}</td>
-                                        <td>{e.ot_normal_hours + e.ot_double_hours + e.ot_triple_hours}</td>
-                                        <td>{e.isNightShift ? "Yes" : "No"}</td>
-                                        <td>{e.confirmed_hours}</td>
-                                        <td>{e.reason}</td>
-                                        <td>{e.approval_stage}</td>
-                                        <td>
-                                            <button onClick={() => startEdit(e)}>
-                                                Edit
-                                            </button>
-                                            <button onClick={() => handleDelete(e._id)}>Delete</button>
-                                        </td>
-                                    </tr>
-                                )
+                                    <input
+                                        type={getDateInputType()}
+                                        value={filterDate}
+                                        onChange={(e) => setFilterDate(e.target.value)}
+                                        className="border p-1 rounded"
+                                    />
+                                )}
+                            </label>
+                        </div>
+
+                        {/* Summary & Bulk Approve */}
+                        <div className="flex flex-wrap gap-4 flex-col items-start">
+                            <div className="font-medium">
+                                Total Confirmed Overtime Hours:{" "}
+                                <span className="text-indigo-600">{totalOTs}</span>
+                            </div>
+
+                            {filteredEntries.length > 0 && (
+                                <div className="flex flex-wrap gap-2 items-center">
+                                    <label className="flex items-center">
+                                        <span className="mr-2 font-medium">Set Approval Stage:</span>
+                                        <select
+                                            value={bulkApprovalStage}
+                                            onChange={(e) => setBulkApprovalStage(e.target.value)}
+                                            className="border p-1 rounded"
+                                        >
+                                            <option value="approved(production)">
+                                                Approved (Production)
+                                            </option>
+                                            <option value="final_approved(hr)">
+                                                Final Approved (HR)
+                                            </option>
+                                        </select>
+                                    </label>
+                                    <button
+                                        onClick={handleBulkApprove}
+                                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                                    >
+                                        Bulk Approve
+                                    </button>
+                                </div>
                             )}
-                        </tbody>
-                    </table>
-                </>
-            )}
-        </>
+                        </div>
+
+                        {/* Loading / Error / No Data Messages */}
+                        {loading ? (
+                            <p className="text-gray-600">Loading entries...</p>
+                        ) : error ? (
+                            <p className="text-red-600">{error}</p>
+                        ) : filteredEntries.length === 0 ? (
+                            <p className="text-gray-600">No overtime entries found.</p>
+                        ) : null}
+                    </div>
+                </div>
+
+                {/* Table section */}
+                <div className="col-span-12 p-4 rounded border border-stone-300">
+                    <div className="border border-gray-300 rounded overflow-hidden h-full flex flex-col">
+                        <div className="overflow-y-auto flex-grow">
+                            <table className="min-w-full h-fit text-sm border-collapse">
+                                <thead className="bg-gray-100 sticky top-0 z-10">
+                                    <tr>
+                                        <th className="p-2 border">Employee No</th>
+                                        <th className="p-2 border">Name</th>
+                                        <th className="p-2 border">Date</th>
+                                        <th className="p-2 border">In Time</th>
+                                        <th className="p-2 border">Out Time</th>
+                                        <th className="p-2 border">Ot Normal</th>
+                                        <th className="p-2 border">Ot Double</th>
+                                        <th className="p-2 border">Ot Triple</th>
+                                        <th className="p-2 border">Total OT</th>
+                                        <th className="p-2 border">Night Shift</th>
+                                        <th className="p-2 border">Confirmed</th>
+                                        <th className="p-2 border">Reason</th>
+                                        <th className="p-2 border">Approval Stage</th>
+                                        <th className="p-2 border">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredEntries.map((e) =>
+                                        editId === e._id ? (
+                                            <tr key={e._id} className="bg-white">
+                                                <td className="p-2 border">
+                                                    <select
+                                                        name="employee_no"
+                                                        value={editForm.employee_no}
+                                                        onChange={handleEditChange}
+                                                        className="border p-1 rounded w-full"
+                                                    >
+                                                        <option value="">Select Employee</option>
+                                                        {employees.map((emp) => (
+                                                            <option key={emp._id} value={emp.employee_no}>
+                                                                {emp.employee_no} - {emp.employee_name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <input
+                                                        type="text"
+                                                        name="employee_name"
+                                                        value={editForm.employee_name}
+                                                        readOnly
+                                                        className="border p-1 rounded w-full bg-gray-100"
+                                                    />
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <input
+                                                        type="date"
+                                                        name="date"
+                                                        value={editForm.date}
+                                                        onChange={handleEditChange}
+                                                        className="border p-1 rounded"
+                                                    />
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <input
+                                                        type="datetime-local"
+                                                        name="inTime"
+                                                        value={editForm.inTime}
+                                                        onChange={handleEditChange}
+                                                        className="border p-1 rounded"
+                                                    />
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <input
+                                                        type="datetime-local"
+                                                        name="outTime"
+                                                        value={editForm.outTime}
+                                                        onChange={handleEditChange}
+                                                        className="border p-1 rounded"
+                                                    />
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <input
+                                                        type="number"
+                                                        name="ot_normal_hours"
+                                                        value={editForm.ot_normal_hours}
+                                                        onChange={handleEditChange}
+                                                        disabled
+                                                        className="border p-1 rounded bg-gray-100 w-full"
+                                                    />
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <input
+                                                        type="number"
+                                                        name="ot_double_hours"
+                                                        value={editForm.ot_double_hours}
+                                                        onChange={handleEditChange}
+                                                        disabled
+                                                        className="border p-1 rounded bg-gray-100 w-full"
+                                                    />
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <input
+                                                        type="number"
+                                                        name="ot_triple_hours"
+                                                        value={editForm.ot_triple_hours}
+                                                        onChange={handleEditChange}
+                                                        disabled
+                                                        className="border p-1 rounded bg-gray-100 w-full"
+                                                    />
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <span className="block">
+                                                        {Number(editForm.ot_normal_hours || 0) +
+                                                            Number(editForm.ot_double_hours || 0) +
+                                                            Number(editForm.ot_triple_hours || 0)}
+                                                    </span>
+                                                </td>
+                                                <td className="p-2 border text-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="isNightShift"
+                                                        checked={editForm.isNightShift}
+                                                        onChange={handleEditChange}
+                                                        disabled
+                                                        className="transform scale-125"
+                                                    />
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <input
+                                                        type="number"
+                                                        name="confirmed_hours"
+                                                        value={editForm.confirmed_hours}
+                                                        onChange={handleEditChange}
+                                                        min="0"
+                                                        step="0.1"
+                                                        className="border p-1 rounded w-full"
+                                                    />
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <input
+                                                        type="text"
+                                                        name="reason"
+                                                        value={editForm.reason}
+                                                        onChange={handleEditChange}
+                                                        className="border p-1 rounded w-full"
+                                                    />
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <select
+                                                        name="approval_stage"
+                                                        value={editForm.approval_stage}
+                                                        onChange={handleEditChange}
+                                                        className="border p-1 rounded w-full"
+                                                    >
+                                                        <option value="pending">Pending</option>
+                                                        <option value="approved(production)">
+                                                            Approved (Production)
+                                                        </option>
+                                                        <option value="final_approved(hr)">
+                                                            Final Approved (HR)
+                                                        </option>
+                                                    </select>
+                                                </td>
+                                                <td className="p-2 border whitespace-nowrap space-x-2">
+                                                    <button
+                                                        onClick={saveEdit}
+                                                        className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                                                    >
+                                                        Save
+                                                    </button>
+                                                    <button
+                                                        onClick={cancelEdit}
+                                                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            <tr key={e._id} className="bg-white">
+                                                <td className="p-2 border">{e.employee_no}</td>
+                                                <td className="p-2 border">{e.employee_name}</td>
+                                                <td className="p-2 border">
+                                                    {new Date(e.date).toLocaleDateString()}
+                                                </td>
+                                                <td className="p-2 border">
+                                                    {new Date(e.inTime).toLocaleString()}
+                                                </td>
+                                                <td className="p-2 border">
+                                                    {new Date(e.outTime).toLocaleString()}
+                                                </td>
+                                                <td className="p-2 border">{e.ot_normal_hours}</td>
+                                                <td className="p-2 border">{e.ot_double_hours}</td>
+                                                <td className="p-2 border">{e.ot_triple_hours}</td>
+                                                <td className="p-2 border">
+                                                    {e.ot_normal_hours + e.ot_double_hours + e.ot_triple_hours}
+                                                </td>
+                                                <td className="p-2 border text-center">
+                                                    {e.isNightShift ? "Yes" : "No"}
+                                                </td>
+                                                <td className="p-2 border">{e.confirmed_hours}</td>
+                                                <td className="p-2 border">{e.reason}</td>
+                                                <td className="p-2 border">{e.approval_stage}</td>
+                                                <td className="p-2 border whitespace-nowrap space-x-2">
+                                                    <button
+                                                        onClick={() => startEdit(e)}
+                                                        className="text-blue-600 hover:underline"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(e._id)}
+                                                        className="text-red-600 hover:underline"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }
 
