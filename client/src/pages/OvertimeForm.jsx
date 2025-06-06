@@ -6,6 +6,10 @@ import { Tooltip } from 'antd';
 import { SiGoogleforms } from "react-icons/si";
 import { CiCircleRemove } from "react-icons/ci";
 import { FaArrowAltCircleRight, FaArrowAltCircleDown } from "react-icons/fa";
+import { IoMdAddCircleOutline } from "react-icons/io";
+import { MdOutlineRestorePage } from "react-icons/md";
+import { GrClearOption } from "react-icons/gr";
+import { IoIosSave } from "react-icons/io";
 
 const API_BASE = `http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/overtime`;
 const EMPLOYEE_API = `http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/employee`;
@@ -171,9 +175,9 @@ function OvertimeForm() {
         let entry = newForms[empIdx].entries[entryIdx];
         entry[name] = type === "checkbox" ? checked : value;
 
-        if (name === "outTime" && entry.outTime) {
+        if (name === "outTime" && entry.outTime && entry.date) {
             const outDate = new Date(entry.outTime);
-            const threshold = new Date(outDate);
+            const threshold = new Date(entry.date);
             threshold.setHours(21, 15, 0, 0);
             entry.isNightShift = outDate > threshold;
         }
@@ -240,7 +244,7 @@ function OvertimeForm() {
     };
 
     return (
-        <div className="bg-white rounded-lg pb-4 shadow h-[90vh] overflow-y-hidden">
+        <div className="bg-white rounded-lg pb-4 shadow overflow-y-hidden">
             <TopBar />
 
             <div className="px-4 grid gap-3 grid-cols-12">
@@ -253,9 +257,9 @@ function OvertimeForm() {
                             <button
                                 type="button"
                                 onClick={addEmployeeSection}
-                                className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                                className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 flex flex-row items-center gap-1"
                             >
-                                + Add Employee
+                                <IoMdAddCircleOutline /> Add Employee
                             </button>
                             <button
                                 type="button"
@@ -267,9 +271,9 @@ function OvertimeForm() {
                                         setOpenIndexes(parsed.map((_, i) => i));
                                     }
                                 }}
-                                className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                                className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 flex flex-row items-center gap-1"
                             >
-                                Restore Last Session
+                                <MdOutlineRestorePage /> Restore Last Session
                             </button>
                             <button
                                 type="button"
@@ -278,14 +282,14 @@ function OvertimeForm() {
                                     setEmployeeForms([]);
                                     setOpenIndexes([]);
                                 }}
-                                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex flex-row items-center gap-1"
                             >
-                                Clear Saved Data
+                                <GrClearOption /> Clear Saved Data
                             </button>
                         </div>
                     </div>
 
-                    <div className="overflow-y-auto max-h-[60vh] rounded border border-stone-200 p-2 space-y-4">
+                    <div className="overflow-y-auto rounded border border-stone-200 p-2 space-y-4">
                         {submitError && <p className="text-red-600">{submitError}</p>}
 
                         {employeeForms.map((emp, empIdx) => (
@@ -375,8 +379,8 @@ function OvertimeForm() {
                                                             onChange={(e) => handleEntryChange(empIdx, entryIdx, e)}
                                                             className="border p-1 rounded"
                                                         >
-                                                            <option value="A">A</option>
-                                                            <option value="B">B</option>
+                                                            <option value="A">Shift 6:30AM</option>
+                                                            <option value="B">Shift 8:30AM</option>
                                                         </select>
                                                     </Tooltip>
                                                     <textarea
@@ -430,9 +434,9 @@ function OvertimeForm() {
                             type="submit"
                             onClick={handleSubmit}
                             disabled={loading}
-                            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+                            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex flex-row items-center gap-1"
                         >
-                            Submit All
+                            <IoIosSave /> Submit All
                         </button>
                     </div>
                 </div>

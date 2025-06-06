@@ -2,6 +2,9 @@ import { Fragment, useState } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { BellIcon } from "@heroicons/react/24/outline";
 
+import { IoEllipsisHorizontalCircle } from "react-icons/io5";
+import { GiSandsOfTime } from "react-icons/gi";
+
 export default function Notification({ notifications = [] }) {
     const pendingApprovals = notifications.filter(n => n.type === "Pending Approval");
     const unconfirmedOTs = notifications.filter(n => n.type === "Unconfirmed OT");
@@ -38,7 +41,7 @@ export default function Notification({ notifications = [] }) {
 
                         {pendingApprovals.length > 0 && (
                             <div className="mb-2">
-                                <h4 className="text-sm font-semibold text-blue-600 mb-1">🔄 Pending Approvals</h4>
+                                <h4 className="flex flex-row items-center gap-1 text-sm font-semibold text-blue-600 mb-1"><IoEllipsisHorizontalCircle /> Pending Approvals</h4>
                                 {pendingApprovals.map((n, i) => (
                                     <div key={`pa-${i}`} className="text-sm text-gray-700 px-2 py-1 rounded hover:bg-gray-100">
                                         {n.message}
@@ -49,7 +52,7 @@ export default function Notification({ notifications = [] }) {
 
                         {unconfirmedOTs.length > 0 && (
                             <div>
-                                <h4 className="text-sm font-semibold text-purple-600 mb-1">⏳ Unconfirmed OTs</h4>
+                                <h4 className="flex flex-row items-center gap-1 text-sm font-semibold text-purple-600 mb-1"><GiSandsOfTime /> Unconfirmed OTs</h4>
                                 {unconfirmedOTs.map((n, i) => (
                                     <div key={`uo-${i}`} className="text-sm text-gray-700 px-2 py-1 rounded hover:bg-gray-100">
                                         {n.message}

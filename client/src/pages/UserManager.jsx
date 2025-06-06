@@ -3,6 +3,8 @@ import axios from "axios";
 import TopBar from "../components/TopBar";
 
 import { MdManageAccounts } from "react-icons/md";
+import { IoMdAddCircleOutline } from "react-icons/io";
+import { MdOutlineSystemUpdateAlt } from "react-icons/md";
 
 const UserManager = () => {
     const [users, setUsers] = useState([]);
@@ -71,7 +73,7 @@ const UserManager = () => {
     };
 
     return (
-        <div className="bg-white rounded-lg pb-4 shadow h-[90vh] overflow-y-hidden">
+        <div className="bg-white rounded-lg pb-4 shadow overflow-y-hidden">
             <TopBar />
 
             <div className="px-4 grid gap-3 grid-cols-12">
@@ -124,18 +126,28 @@ const UserManager = () => {
                                 type="submit"
                                 className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                             >
-                                {editingId ? "Update User" : "Add User"}
+                                {editingId ? (
+                                    <span className="flex items-center gap-2">
+                                        <MdOutlineSystemUpdateAlt />
+                                        Update User
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-2">
+                                        <IoMdAddCircleOutline />
+                                        Add User
+                                    </span>
+                                )}
                             </button>
                         </form>
                     </div>
                 </div>
 
-                <div className="col-span-12 p-4 rounded border border-stone-300 h-[70%]">
+                <div className="col-span-12 p-4 rounded border border-stone-300">
                     <div className="mb-4 flex items-center justify-between">
                         {/* Anything else like title/buttons here */}
                     </div>
 
-                    <div className="overflow-x-auto max-h-[80%]">
+                    <div className="overflow-x-auto">
                         <table className="min-w-full">
                             <thead className="sticky top-0 z-10 bg-gray-100">
                                 <tr>
