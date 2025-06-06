@@ -33,6 +33,11 @@ export default function Dashboard() {
   const [monthlyData, setMonthlyData] = useState([]);
   const [otByEmployee, setOtByEmployee] = useState([]);
 
+  // ✅ Get current month/year
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
   useEffect(() => {
     fetchEmployees();
     fetchOTMonthly();
@@ -51,9 +56,7 @@ export default function Dashboard() {
     const endDate = "2025-12-31";
 
     const res = await axios.get(
-      `http://${
-        import.meta.env.VITE_APP_BACKEND_IP
-      }:5000/api/overtime/monthly-report`,
+      `http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/overtime/monthly-report`,
       {
         params: { startDate, endDate },
       }
@@ -66,10 +69,16 @@ export default function Dashboard() {
       monthly[key] += entry.total_confirmed_hours;
     });
 
-    const chartData = Object.entries(monthly).map(([month, totalHours]) => ({
-      month,
-      totalHours: Number(totalHours.toFixed(2)),
-    }));
+    // ✅ Only current month data
+    const chartData = Object.entries(monthly)
+      .filter(([key]) => {
+        const [year, month] = key.split("-").map(Number);
+        return year === currentYear && month === currentMonth;
+      })
+      .map(([month, totalHours]) => ({
+        month,
+        totalHours: Number(totalHours.toFixed(2)),
+      }));
 
     setMonthlyData(chartData);
   };
@@ -81,9 +90,17 @@ export default function Dashboard() {
     const all = res.data;
 
     const byEmp = {};
+
+    // ✅ Filter for current month only
     all.forEach((e) => {
-      if (!byEmp[e.employee_name]) byEmp[e.employee_name] = 0;
-      byEmp[e.employee_name] += e.confirmed_hours || 0;
+      const entryDate = new Date(e.date);
+      const year = entryDate.getFullYear();
+      const month = entryDate.getMonth() + 1;
+
+      if (year === currentYear && month === currentMonth) {
+        if (!byEmp[e.employee_name]) byEmp[e.employee_name] = 0;
+        byEmp[e.employee_name] += e.confirmed_hours || 0;
+      }
     });
 
     const chartData = Object.entries(byEmp).map(([name, value]) => ({
@@ -174,9 +191,8 @@ export default function Dashboard() {
                 {employees.map((emp, index) => (
                   <tr
                     key={emp._id}
-                    className={`${
-                      index % 2 === 0 ? "bg-white" : "bg-stone-50"
-                    } hover:bg-stone-100`}
+                    className={`${index % 2 === 0 ? "bg-white" : "bg-stone-50"
+                      } hover:bg-stone-100`}
                   >
                     <td className="px-4 py-2 border-b border-stone-200">
                       {emp.employee_no}

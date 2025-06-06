@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import TopBar from '../components/TopBar';
+import Swal from 'sweetalert2';
 
 import { MdManageAccounts } from "react-icons/md";
 import { IoMdAddCircleOutline } from "react-icons/io";
@@ -35,8 +36,18 @@ const EmployeeManagement = () => {
             fetchEmployees();
             setForm({ employee_no: '', employee_name: '' });
             setEditingId(null);
+            Swal.fire({
+                icon: 'success',
+                title: editingId ? 'Employee Updated' : 'Employee Added',
+                showConfirmButton: false,
+                timer: 1500
+            });
         } catch (err) {
-            alert('Error saving employee');
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Error saving employee',
+            });
         }
     };
 
@@ -46,9 +57,25 @@ const EmployeeManagement = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure?')) return;
-        await axios.delete(`http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/employee/${id}`);
-        fetchEmployees();
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await axios.delete(`http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/employee/${id}`);
+                fetchEmployees();
+                Swal.fire(
+                    'Deleted!',
+                    'Employee has been deleted.',
+                    'success'
+                );
+            }
+        });
     };
 
     return (

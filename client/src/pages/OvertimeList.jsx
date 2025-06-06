@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import TopBar from '../components/TopBar'
+import { AuthContext } from "../context/AuthContext";
 
 import { IoTime } from "react-icons/io5";
 
@@ -15,6 +16,7 @@ function OvertimeList() {
     const [editId, setEditId] = useState(null);
     const [editForm, setEditForm] = useState({});
     const [employees, setEmployees] = useState([]);
+    const { user } = useContext(AuthContext);
 
     const [filterEmployee, setFilterEmployee] = useState("");
     const [filterPeriod, setFilterPeriod] = useState("daily");
@@ -210,15 +212,13 @@ function OvertimeList() {
                         entryDate.getMonth() === filterDt.getMonth() &&
                         entryDate.getDate() === filterDt.getDate()
                     );
-                } else if (filterPeriod === "monthly") {
-                    return (
-                        entryDate.getFullYear() === filterDt.getFullYear() &&
-                        entryDate.getMonth() === filterDt.getMonth()
-                    );
-                } else if (filterPeriod === "yearly") {
-                    return entryDate.getFullYear() === filterDt.getFullYear();
                 }
-                return true;
+
+                // monthly
+                return (
+                    entryDate.getFullYear() === filterDt.getFullYear() &&
+                    entryDate.getMonth() === filterDt.getMonth()
+                );
             });
         }
 
@@ -228,35 +228,8 @@ function OvertimeList() {
     const getDateInputType = () => {
         if (filterPeriod === "daily") return "date";
         if (filterPeriod === "monthly") return "month";
-        if (filterPeriod === "yearly") return "number";
         return "date";
     };
-
-    const handleYearChange = (e) => {
-        let val = e.target.value;
-        if (/^\d{0,4}$/.test(val)) {
-            setFilterDate(val);
-        }
-    };
-
-    const parseFilterDate = () => {
-        if (filterPeriod === "yearly") {
-            const yearNum = parseInt(filterDate);
-            if (yearNum && yearNum > 1900 && yearNum < 2100) {
-                return new Date(yearNum, 0, 1);
-            }
-            return null;
-        }
-        return filterDate;
-    };
-
-    useEffect(() => {
-        if (filterPeriod === "yearly") {
-            const parsedDate = parseFilterDate();
-            if (parsedDate) setFilterDate(parsedDate.toISOString().slice(0, 10));
-            else setFilteredEntries([]);
-        }
-    }, [filterDate, filterPeriod]);
 
     const totalOTs = filteredEntries.reduce(
         (sum, e) => sum + Number(e.confirmed_hours || 0),
@@ -309,38 +282,24 @@ function OvertimeList() {
                                             setFilterDate(now.toISOString().slice(0, 10));
                                         } else if (e.target.value === "monthly") {
                                             setFilterDate(now.toISOString().slice(0, 7));
-                                        } else if (e.target.value === "yearly") {
-                                            setFilterDate(now.getFullYear().toString());
                                         }
                                     }}
                                     className="border p-1 rounded"
                                 >
                                     <option value="daily">Daily</option>
                                     <option value="monthly">Monthly</option>
-                                    <option value="yearly">Yearly</option>
                                 </select>
                             </label>
 
                             {/* Date Filter */}
                             <label className="flex items-center">
                                 <span className="mr-2 font-medium">Date:</span>
-                                {filterPeriod === "yearly" ? (
-                                    <input
-                                        type="text"
-                                        maxLength="4"
-                                        value={filterDate}
-                                        onChange={handleYearChange}
-                                        placeholder="YYYY"
-                                        className="border p-1 rounded w-20"
-                                    />
-                                ) : (
-                                    <input
-                                        type={getDateInputType()}
-                                        value={filterDate}
-                                        onChange={(e) => setFilterDate(e.target.value)}
-                                        className="border p-1 rounded"
-                                    />
-                                )}
+                                <input
+                                    type={getDateInputType()}
+                                    value={filterDate}
+                                    onChange={(e) => setFilterDate(e.target.value)}
+                                    className="border p-1 rounded"
+                                />
                             </label>
                         </div>
 
@@ -368,12 +327,12 @@ function OvertimeList() {
                                             </option>
                                         </select>
                                     </label>
-                                    <button
+                                    {user?.role === 'supervisor(production)' ? (<button
                                         onClick={handleBulkApprove}
                                         className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                                     >
                                         Bulk Approve
-                                    </button>
+                                    </button>) : ''}
                                 </div>
                             )}
                         </div>
@@ -422,6 +381,7 @@ function OvertimeList() {
                                                         value={editForm.employee_no}
                                                         onChange={handleEditChange}
                                                         className="border p-1 rounded w-full"
+                                                        disabled={user?.role === 'supervisor(production)'}
                                                     >
                                                         <option value="">Select Employee</option>
                                                         {employees.map((emp) => (
@@ -436,7 +396,7 @@ function OvertimeList() {
                                                         type="text"
                                                         name="employee_name"
                                                         value={editForm.employee_name}
-                                                        readOnly
+                                                        disabled
                                                         className="border p-1 rounded w-full bg-gray-100"
                                                     />
                                                 </td>
@@ -447,6 +407,7 @@ function OvertimeList() {
                                                         value={editForm.date}
                                                         onChange={handleEditChange}
                                                         className="border p-1 rounded"
+                                                        disabled={user?.role === 'supervisor(production)'}
                                                     />
                                                 </td>
                                                 <td className="p-2 border">
@@ -456,6 +417,7 @@ function OvertimeList() {
                                                         value={editForm.inTime}
                                                         onChange={handleEditChange}
                                                         className="border p-1 rounded"
+                                                        disabled={user?.role === 'supervisor(production)'}
                                                     />
                                                 </td>
                                                 <td className="p-2 border">
@@ -465,6 +427,7 @@ function OvertimeList() {
                                                         value={editForm.outTime}
                                                         onChange={handleEditChange}
                                                         className="border p-1 rounded"
+                                                        disabled={user?.role === 'supervisor(production)'}
                                                     />
                                                 </td>
                                                 <td className="p-2 border">
@@ -540,6 +503,7 @@ function OvertimeList() {
                                                         value={editForm.approval_stage}
                                                         onChange={handleEditChange}
                                                         className="border p-1 rounded w-full"
+                                                        disabled={user?.role === 'supervisor(production)'}
                                                     >
                                                         <option value="pending">Pending</option>
                                                         <option value="approved(production)">
@@ -600,6 +564,7 @@ function OvertimeList() {
                                                     <button
                                                         onClick={() => handleDelete(e._id)}
                                                         className="text-red-600 hover:underline"
+                                                        disabled={user?.role === 'supervisor(production)'}
                                                     >
                                                         Delete
                                                     </button>

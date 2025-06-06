@@ -9,6 +9,7 @@ export default function Register() {
     const containerRef = useRef(null);
     const inputRefs = useRef([]);
     const logoRef = useRef(null);
+    const buttonRef = useRef(null);
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -18,34 +19,58 @@ export default function Register() {
         role: "supervisor(hr)"
     });
 
+    // Helper for refs array
+    const setRef = (index) => (el) => {
+        inputRefs.current[index] = el;
+    };
+
     useEffect(() => {
-        // Animate container
-        gsap.from(containerRef.current, {
-            opacity: 0,
-            scale: 0.9,
-            duration: 0.8,
-            ease: "power2.out"
-        });
+        // Animate container scale & fade in
+        gsap.fromTo(
+            containerRef.current,
+            { scale: 0.8, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.7, ease: "power3.out" }
+        );
 
-        // Animate form inputs (staggered)
-        if (inputRefs.current.length > 0) {
-            gsap.from(inputRefs.current, {
-                y: 40,
-                opacity: 0,
-                duration: 0.6,
-                stagger: 0.1,
-                delay: 0.4,
-                ease: "power2.out"
-            });
+        // Animate logo sliding from right
+        gsap.fromTo(
+            logoRef.current,
+            { x: 100, opacity: 0 },
+            { x: 0, opacity: 1, duration: 1, ease: "power3.out", delay: 0.3 }
+        );
+
+        // Animate inputs scale & fade staggered
+        gsap.fromTo(
+            inputRefs.current,
+            { scale: 0.9, opacity: 0, y: 40 },
+            {
+                scale: 1,
+                opacity: 1,
+                y: 0,
+                duration: 0.5,
+                stagger: 0.15,
+                ease: "back.out(1.7)",
+                delay: 0.6
+            }
+        );
+
+        // Animate register button scale & fade in, ensure on top
+        if (buttonRef.current) {
+            gsap.fromTo(
+                buttonRef.current,
+                { scale: 0.8, opacity: 0 },
+                {
+                    scale: 1,
+                    opacity: 1,
+                    duration: 0.5,
+                    ease: "back.out(1.7)",
+                    delay: 1.2,
+                    onStart: () => {
+                        buttonRef.current.style.zIndex = 10;
+                    }
+                }
+            );
         }
-
-        // Animate logo
-        gsap.from(logoRef.current, {
-            x: 100,
-            opacity: 0,
-            duration: 0.8,
-            ease: "power2.out"
-        });
     }, []);
 
     const handleChange = (e) => {
@@ -65,11 +90,14 @@ export default function Register() {
     };
 
     return (
-        <section className="bg-[#F4F7FA] min-h-screen flex items-center justify-center">
-            <div ref={containerRef} className="bg-[#7AB2D3] flex rounded-2xl shadow-lg max-w-3xl p-5">
+        <section className="bg-[#F4F7FA] min-h-screen flex items-center justify-center px-4">
+            <div
+                ref={containerRef}
+                className="bg-white flex rounded-2xl shadow-lg max-w-3xl p-5 border border-black overflow-visible"
+            >
                 <div className="w-1/2 px-8">
                     <h2
-                        ref={el => inputRefs.current[0] = el}
+                        ref={setRef(0)}
                         className="font-bold text-3xl flex justify-center text-[#183A57]"
                     >
                         Register
@@ -77,34 +105,38 @@ export default function Register() {
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
                         <input
-                            ref={el => inputRefs.current[1] = el}
+                            ref={setRef(1)}
                             type="text"
                             name="name"
                             placeholder="Name"
                             onChange={handleChange}
                             className="p-2 rounded-xl border border-[#4A628A]"
+                            required
                         />
                         <input
-                            ref={el => inputRefs.current[2] = el}
+                            ref={setRef(2)}
                             type="email"
                             name="email"
                             placeholder="Email"
                             onChange={handleChange}
                             className="p-2 rounded-xl border border-[#4A628A]"
+                            required
                         />
                         <input
-                            ref={el => inputRefs.current[3] = el}
+                            ref={setRef(3)}
                             type="password"
                             name="password"
                             placeholder="Password"
                             onChange={handleChange}
                             className="p-2 rounded-xl border border-[#4A628A]"
+                            required
                         />
                         <select
-                            ref={el => inputRefs.current[4] = el}
+                            ref={setRef(4)}
                             name="role"
                             onChange={handleChange}
                             className="p-2 rounded-xl border border-[#4A628A] bg-white"
+                            defaultValue="supervisor(hr)"
                         >
                             <option value="">Select a Role</option>
                             <option value="manager(hr)">Manager (HR)</option>
@@ -113,17 +145,20 @@ export default function Register() {
                             <option value="supervisor(production)">Supervisor (Production)</option>
                         </select>
                         <button
-                            ref={el => inputRefs.current[5] = el}
+                            ref={buttonRef}
                             type="submit"
-                            className="bg-[#183A57] text-white py-2 rounded-xl hover:bg-[#4A628A]"
+                            className="bg-[#183A57] text-white py-2 rounded-xl hover:bg-[#4A628A] relative z-10"
                         >
                             Register
                         </button>
                         <p
-                            ref={el => inputRefs.current[6] = el}
+                            ref={setRef(5)}
                             className="text-[#1A1A1A] text-center"
                         >
-                            Have an account? <Link to="/" className="underline text-[#183A57]">Login</Link>
+                            Have an account?{" "}
+                            <Link to="/" className="underline text-[#183A57]">
+                                Login
+                            </Link>
                         </p>
                     </form>
                 </div>

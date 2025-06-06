@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import TopBar from "../components/TopBar";
+import Swal from 'sweetalert2';
 
 import { MdManageAccounts } from "react-icons/md";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import { MdOutlineSystemUpdateAlt } from "react-icons/md";
+import { AuthContext } from "../context/AuthContext";
 
 const UserManager = () => {
     const [users, setUsers] = useState([]);
@@ -12,6 +14,8 @@ const UserManager = () => {
     const [editingId, setEditingId] = useState(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteUserId, setDeleteUserId] = useState(null);
+    const { user } = useContext(AuthContext);
+    const currentUserRole = user?.role;
 
     const fetchUsers = async () => {
         try {
@@ -35,41 +39,54 @@ const UserManager = () => {
         try {
             if (editingId) {
                 await axios.put(`http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/auth/users/${editingId}`, form);
+                Swal.fire("Success", "User updated successfully!", "success");
                 setEditingId(null);
             } else {
                 await axios.post(`http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/auth/register`, form);
+                Swal.fire("Success", "User added successfully!", "success");
             }
             setForm({ name: "", email: "", password: "", role: "manager(hr)" });
             fetchUsers();
         } catch (err) {
             console.error("Error saving user:", err);
+            Swal.fire("Error", "Failed to save user. Try again!", "error");
         }
     };
 
     const handleEdit = (user) => {
         setForm({ name: user.name, email: user.email, password: "", role: user.role });
         setEditingId(user._id);
+        Swal.fire("Edit Mode", `Editing user: ${user.name}`, "info");
     };
 
     const handleDeleteClick = (id) => {
-        setDeleteUserId(id);
-        setConfirmOpen(true);
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This user will be permanently deleted!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                setDeleteUserId(id);
+                confirmDelete();
+            }
+        });
     };
 
     const confirmDelete = async () => {
         try {
             await axios.delete(`http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/auth/users/${deleteUserId}`);
+            Swal.fire("Deleted!", "User has been deleted.", "success");
             setConfirmOpen(false);
             setDeleteUserId(null);
             fetchUsers();
         } catch (err) {
             console.error("Error deleting user:", err);
+            Swal.fire("Error", "Failed to delete the user.", "error");
         }
-    };
-
-    const cancelDelete = () => {
-        setConfirmOpen(false);
-        setDeleteUserId(null);
     };
 
     return (
@@ -158,21 +175,40 @@ const UserManager = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {users.map(user => (
-                                    <tr key={user._id}>
-                                        <td className="p-2 border whitespace-nowrap">{user.name}</td>
-                                        <td className="p-2 border whitespace-nowrap">{user.email}</td>
-                                        <td className="p-2 border whitespace-nowrap">{user.role}</td>
-                                        <td className="p-2 border whitespace-nowrap space-x-2">
-                                            <button onClick={() => handleEdit(user)} className="text-blue-600 hover:underline">
-                                                Edit
-                                            </button>
-                                            <button onClick={() => handleDeleteClick(user._id)} className="text-red-600 hover:underline">
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {users.map(user => {
+                                    const isTargetAdmin = user.role === "administrator";
+                                    const isCurrentAdmin = currentUserRole === "administrator";
+
+                                    const canEditDelete = !isTargetAdmin || isCurrentAdmin;
+
+                                    return (
+                                        <tr key={user._id}>
+                                            <td className="p-2 border whitespace-nowrap">{user.name}</td>
+                                            <td className="p-2 border whitespace-nowrap">{user.email}</td>
+                                            <td className="p-2 border whitespace-nowrap">{user.role}</td>
+                                            <td className="p-2 border whitespace-nowrap space-x-2">
+                                                {canEditDelete ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleEdit(user)}
+                                                            className="text-blue-600 hover:underline"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteClick(user._id)}
+                                                            className="text-red-600 hover:underline"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-gray-400 italic">Restricted</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

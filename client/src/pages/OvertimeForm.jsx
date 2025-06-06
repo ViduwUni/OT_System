@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import TopBar from '../components/TopBar';
 import { Tooltip } from 'antd';
+import Swal from 'sweetalert2';
 
 import { SiGoogleforms } from "react-icons/si";
 import { CiCircleRemove } from "react-icons/ci";
@@ -207,9 +208,12 @@ function OvertimeForm() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setSubmitError("");
         if (!validateForms()) {
-            setSubmitError("Fix errors before submitting.");
+            Swal.fire({
+                icon: 'error',
+                title: 'Incomplete Form',
+                text: 'Please fill out all required fields before submitting.',
+            });
             return;
         }
 
@@ -232,12 +236,22 @@ function OvertimeForm() {
         setLoading(true);
         try {
             await Promise.all(payloads.map((p) => axios.post(API_BASE, p)));
-            alert("Submitted successfully.");
-            setEmployeeForms([]);    // This empties forms and will NOT save empty array to sessionStorage thanks to the guard
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Overtime data submitted successfully!',
+                timer: 2000,
+                showConfirmButton: false,
+            });
+            setEmployeeForms([]);
             setOpenIndexes([]);
             sessionStorage.removeItem("overtimeFormData");
         } catch {
-            setSubmitError("Submission failed.");
+            Swal.fire({
+                icon: 'error',
+                title: 'Submission Failed',
+                text: 'Something went wrong while submitting the data.',
+            });
         } finally {
             setLoading(false);
         }
@@ -254,6 +268,14 @@ function OvertimeForm() {
                             <SiGoogleforms /> Grouped Overtime Entry Form
                         </h3>
                         <div className="flex gap-2">
+                            <button
+                                type="submit"
+                                onClick={handleSubmit}
+                                disabled={loading}
+                                className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex flex-row items-center gap-1"
+                            >
+                                <IoIosSave /> Submit All
+                            </button>
                             <button
                                 type="button"
                                 onClick={addEmployeeSection}
@@ -303,6 +325,9 @@ function OvertimeForm() {
                                         {openIndexes.includes(empIdx) ? <FaArrowAltCircleDown /> : <FaArrowAltCircleRight />}{" "}
                                         {emp.employee_no || "Select Employee"}
                                     </button>
+                                    <span className="text-sm text-stone-600 ml-2">
+                                        ({emp.entries.length} {emp.entries.length === 1 ? "entry" : "entries"})
+                                    </span>
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -320,7 +345,7 @@ function OvertimeForm() {
 
                                 {openIndexes.includes(empIdx) && (
                                     <div className="space-y-4">
-                                        <div className="flex flex-col sm:flex-row gap-2 items-start">
+                                        <div className="flex flex-row sm:flex-row gap-2 items-center">
                                             <label className="font-medium">Employee No:</label>
                                             <select
                                                 value={emp.employee_no}
@@ -334,6 +359,13 @@ function OvertimeForm() {
                                                     </option>
                                                 ))}
                                             </select>
+                                            <button
+                                                type="button"
+                                                onClick={() => addEntry(empIdx)}
+                                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                                            >
+                                                + Add Entry
+                                            </button>
                                         </div>
 
                                         {emp.entries.map((entry, entryIdx) => (
@@ -415,29 +447,10 @@ function OvertimeForm() {
                                                 </button>
                                             </div>
                                         ))}
-
-                                        <button
-                                            type="button"
-                                            onClick={() => addEntry(empIdx)}
-                                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                                        >
-                                            + Add Entry
-                                        </button>
                                     </div>
                                 )}
                             </div>
                         ))}
-                    </div>
-
-                    <div className="mt-4">
-                        <button
-                            type="submit"
-                            onClick={handleSubmit}
-                            disabled={loading}
-                            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex flex-row items-center gap-1"
-                        >
-                            <IoIosSave /> Submit All
-                        </button>
                     </div>
                 </div>
             </div>

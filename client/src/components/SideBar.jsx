@@ -27,7 +27,7 @@ import {
 } from "react-icons/bs";
 
 export default function SideBar() {
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
   const location = useLocation();
 
   const [latency, setLatency] = useState(null);
@@ -41,7 +41,52 @@ export default function SideBar() {
 
   const BACKEND_URL = `http://${import.meta.env.VITE_APP_BACKEND_IP}:5000`;
 
-  const signalIconSize = "text-2xl"; // ← Adjust icon size here
+  const signalIconSize = "text-2xl";
+
+  const routes = [
+    {
+      to: "/dashboard",
+      title: "Dashboard",
+      icon: <AiFillAppstore className="text-violet-500" />,
+      roles: ['administrator', 'manager(hr)', 'supervisor(hr)', 'supervisor(production)', 'manager(production)'],
+    },
+    {
+      to: "/userManager",
+      title: "User Manager",
+      icon: <FaUsers />,
+      roles: ['administrator', 'manager(hr)'],
+    },
+    {
+      to: "/employeeManagement",
+      title: "Employees",
+      icon: <GrUserWorker />,
+      roles: ['administrator', 'manager(hr)', 'supervisor(hr)'],
+    },
+    {
+      to: "/overtimeForm",
+      title: "Overtime Form",
+      icon: <FaWpforms />,
+      roles: ['administrator', 'manager(hr)', 'supervisor(hr)'],
+    },
+    {
+      to: "/overtimeList",
+      title: "Overtime List",
+      icon: <FaClipboardList />,
+      roles: ['administrator', 'manager(hr)', 'supervisor(hr)', 'supervisor(production)', 'manager(production)'],
+    },
+    {
+      to: "/monthlyReport",
+      title: "Monthly Report",
+      icon: <TbReport />,
+      roles: ['administrator', 'manager(hr)', 'supervisor(hr)'],
+    },
+    {
+      to: "/scannerConverter",
+      title: "Scanner Converter",
+      icon: <PiFingerprintBold />,
+      roles: ['administrator', 'manager(hr)', 'supervisor(hr)'],
+    },
+  ];
 
   const getSignalIcon = (ms) => {
     if (ms < 100)
@@ -74,10 +119,10 @@ export default function SideBar() {
       setLatency(ms);
 
       let newStatus = "";
-      if (ms < 100) newStatus = "🟢 Excellent";
-      else if (ms < 250) newStatus = "🟡 Good";
-      else if (ms < 500) newStatus = "🟠 Weak";
-      else newStatus = "🔴 Bad";
+      if (ms < 100) newStatus = "Excellent";
+      else if (ms < 250) newStatus = "Good";
+      else if (ms < 500) newStatus = "Weak";
+      else newStatus = "Bad";
 
       setStatus(newStatus);
 
@@ -86,7 +131,7 @@ export default function SideBar() {
         newStatus !== prevStatus.current &&
         !connToastShown.current.has(newStatus)
       ) {
-        toast.warn(`Connection is ${newStatus.replace(/🟠 |🔴 /, "")}`, {
+        toast.warn(`Connection is ${newStatus.replace(/ | /, "")}`, {
           position: "top-right",
           autoClose: 4000,
         });
@@ -94,7 +139,7 @@ export default function SideBar() {
       }
 
       if (
-        (newStatus === "🟢 Excellent" || newStatus === "🟡 Good") &&
+        (newStatus === "Excellent" || newStatus === "Good") &&
         prevStatus.current !== newStatus
       ) {
         connToastShown.current.clear();
@@ -103,11 +148,11 @@ export default function SideBar() {
       prevStatus.current = newStatus;
     } catch (err) {
       setLatency(null);
-      const newStatus = "🔴 No Connection";
+      const newStatus = "No Connection";
       setStatus(newStatus, err);
 
       if (!connToastShown.current.has(newStatus)) {
-        toast.error("Lost connection to backend 😵", {
+        toast.error("Lost connection to backend", {
           position: "top-right",
           autoClose: 4000,
         });
@@ -131,7 +176,7 @@ export default function SideBar() {
         newDbStatus !== prevDbStatus.current &&
         !dbToastShown.current.has(newDbStatus)
       ) {
-        toast.error("⚠️ MongoDB is disconnected!", {
+        toast.error("MongoDB is disconnected!", {
           position: "top-right",
           autoClose: 4000,
         });
@@ -143,7 +188,7 @@ export default function SideBar() {
         prevDbStatus.current !== "connected" &&
         !dbToastShown.current.has("connected")
       ) {
-        toast.success("✅ MongoDB reconnected!", {
+        toast.success("MongoDB reconnected!", {
           position: "top-right",
           autoClose: 3000,
         });
@@ -219,48 +264,17 @@ export default function SideBar() {
       <div className="overflow-y-scroll sticky top-4 h-[calc(100vh-32px-48px)]">
         <AccountInfo />
         <div className="space-y-1">
-          <Route
-            to="/dashboard"
-            title="Dashboard"
-            icon={<AiFillAppstore className="text-violet-500" />}
-            selected={location.pathname === "/dashboard"}
-          />
-          <Route
-            to="/userManager"
-            title="User Manager"
-            icon={<FaUsers />}
-            selected={location.pathname === "/userManager"}
-          />
-          <Route
-            to="/employeeManagement"
-            title="Employees"
-            icon={<GrUserWorker />}
-            selected={location.pathname === "/employeeManagement"}
-          />
-          <Route
-            to="/overtimeForm"
-            title="Overtime Form"
-            icon={<FaWpforms />}
-            selected={location.pathname === "/overtimeForm"}
-          />
-          <Route
-            to="/overtimeList"
-            title="Overtime List"
-            icon={<FaClipboardList />}
-            selected={location.pathname === "/overtimeList"}
-          />
-          <Route
-            to="/monthlyReport"
-            title="Monthly Report"
-            icon={<TbReport />}
-            selected={location.pathname === "/monthlyReport"}
-          />
-          <Route
-            to="/scannerConverter"
-            title="Scanner Converter"
-            icon={<PiFingerprintBold />}
-            selected={location.pathname === "/scannerConverter"}
-          />
+          {routes
+            .filter((route) => route.roles.includes(user?.role))
+            .map((route) => (
+              <Route
+                key={route.to}
+                to={route.to}
+                title={route.title}
+                icon={route.icon}
+                selected={location.pathname === route.to}
+              />
+            ))}
         </div>
       </div>
       <div className="flex sticky top-[calc(100vh_-_48px_-_16px)] flex-col h-12 border-t px-2 border-stone-300 justify-end text-xs">
@@ -305,11 +319,10 @@ const Route = ({ to, icon, title, selected }) => {
   return (
     <Link
       to={to}
-      className={`flex items-center justify-start gap-2 w-full rounded px-2 py-1.5 text-sm transition-[box-shadow,_background-color,_color] ${
-        selected
-          ? "bg-white text-stone-950 shadow"
-          : "hover:bg-stone-200 bg-transparent text-stone-500 shadow-none"
-      }`}
+      className={`flex items-center justify-start gap-2 w-full rounded px-2 py-1.5 text-sm transition-[box-shadow,_background-color,_color] ${selected
+        ? "bg-white text-stone-950 shadow"
+        : "hover:bg-stone-200 bg-transparent text-stone-500 shadow-none"
+        }`}
     >
       {icon && <span>{icon}</span>}
       <span>{title}</span>
