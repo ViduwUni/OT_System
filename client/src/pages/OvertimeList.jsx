@@ -320,7 +320,9 @@ function OvertimeList() {
                 <span className="text-indigo-600">{totalOTs}</span>
               </div>
 
-              <RoleGate allow={['administrator' ,'manager(hr)', 'manager(production)']}>
+              <RoleGate
+                allow={["administrator", "manager(hr)", "manager(production)"]}
+              >
                 {filteredEntries.length > 0 && (
                   <div className="flex flex-wrap gap-2 items-center">
                     <label className="flex items-center">
@@ -332,12 +334,12 @@ function OvertimeList() {
                         onChange={(e) => setBulkApprovalStage(e.target.value)}
                         className="border p-1 rounded"
                       >
-                        <option value="approved(production)">
-                          Approved (Production)
-                        </option>
-                        <RoleGate
-                          allow={["administrator", "manager(hr)"]}
-                        >
+                        <RoleGate allow={["administrator", "manager(production)"]}>
+                          <option value="approved(production)">
+                            Approved (Production)
+                          </option>
+                        </RoleGate>
+                        <RoleGate allow={["administrator", "manager(hr)"]}>
                           <option value="final_approved(hr)">
                             Final Approved (HR)
                           </option>

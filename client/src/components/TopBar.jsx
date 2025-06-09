@@ -9,8 +9,9 @@ import { FiSun, FiMoon } from "react-icons/fi";
 
 export default function TopBar() {
   const { hour } = GreetingInfo();
-  const API_BASE = `http://${import.meta.env.VITE_APP_BACKEND_IP
-    }:5000/api/overtime`;
+  const API_BASE = `http://${
+    import.meta.env.VITE_APP_BACKEND_IP
+  }:5000/api/overtime`;
   const [notifications, setNotifications] = useState([]);
   const { user } = useContext(AuthContext);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -30,6 +31,15 @@ export default function TopBar() {
               message: `OT for ${e.employee_no} on ${new Date(
                 e.date
               ).toLocaleDateString()} is pending.`,
+            });
+          }
+
+          if (e.approval_stage === "approved(production)") {
+            notifs.push({
+              type: "Pending Final Approval",
+              message: `Final approval needed for OT of ${
+                e.employee_no
+              } on ${new Date(e.date).toLocaleDateString()}.`,
             });
           }
 
@@ -68,7 +78,11 @@ export default function TopBar() {
         <div>
           <span className="text-sm font-bold flex items-center gap-2">
             <Greeting name={user?.name} />
-            {hour >= 6 && hour < 18 ? <FiSun className="text-yellow-500" /> : <FiMoon className="text-blue-500" />}
+            {hour >= 6 && hour < 18 ? (
+              <FiSun className="text-yellow-500" />
+            ) : (
+              <FiMoon className="text-blue-500" />
+            )}
           </span>
           <span className="text-xs block text-stone-500">
             {currentTime.toLocaleString("en-US", {
@@ -77,7 +91,7 @@ export default function TopBar() {
               year: "numeric",
               hour: "2-digit",
               minute: "2-digit",
-              second: "2-digit"
+              second: "2-digit",
             })}
           </span>
         </div>
