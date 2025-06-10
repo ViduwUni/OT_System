@@ -5,6 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import RoleGate from "../components/RoleGate";
 
 import { IoTime } from "react-icons/io5";
+import { FaSortNumericDown, FaSortNumericUp } from "react-icons/fa";
 
 const API_BASE = `http://${
   import.meta.env.VITE_APP_BACKEND_IP
@@ -21,6 +22,9 @@ function OvertimeList() {
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [employees, setEmployees] = useState([]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [sortAsc, setSortAsc] = useState(true);
   const { user } = useContext(AuthContext);
 
   const [filterEmployee, setFilterEmployee] = useState("");
@@ -232,8 +236,32 @@ function OvertimeList() {
       });
     }
 
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      filtered = filtered.filter((e) => {
+        const entryDate = new Date(e.date);
+        return entryDate >= start && entryDate <= end;
+      });
+    }
+
+    filtered.sort((a, b) => {
+      const da = new Date(a.date),
+        db = new Date(b.date);
+      return sortAsc ? da - db : db - da;
+    });
+
     setFilteredEntries(filtered);
-  }, [entries, filterEmployee, filterPeriod, filterDate]);
+  }, [
+    entries,
+    filterEmployee,
+    filterPeriod,
+    filterDate,
+    startDate,
+    endDate,
+    sortAsc,
+  ]);
 
   const getDateInputType = () => {
     if (filterPeriod === "daily") return "date";
@@ -263,54 +291,81 @@ function OvertimeList() {
           <div className="max-h-[10rem] overflow-y-auto rounded border border-stone-200 p-2 space-y-3">
             {/* Filters */}
             <div className="flex flex-wrap gap-4 items-center">
-              {/* Employee Filter */}
-              <label className="flex items-center">
-                <span className="mr-2 font-medium">Employee:</span>
-                <select
-                  value={filterEmployee}
-                  onChange={(e) => setFilterEmployee(e.target.value)}
-                  className="border p-1 rounded"
-                >
-                  <option value="">All Employees</option>
-                  {employees.map((emp) => (
-                    <option key={emp._id} value={emp.employee_no}>
-                      {emp.employee_no} - {emp.employee_name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="flex flex-row border p-2 rounded">
+                {/* Employee Filter */}
+                <label className="flex items-center">
+                  <span className="mr-2 font-medium">Employee:</span>
+                  <select
+                    value={filterEmployee}
+                    onChange={(e) => setFilterEmployee(e.target.value)}
+                    className="border p-1 rounded"
+                  >
+                    <option value="">All Employees</option>
+                    {employees.map((emp) => (
+                      <option key={emp._id} value={emp.employee_no}>
+                        {emp.employee_no} - {emp.employee_name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
 
-              {/* Period Filter */}
-              <label className="flex items-center">
-                <span className="mr-2 font-medium">Period:</span>
-                <select
-                  value={filterPeriod}
-                  onChange={(e) => {
-                    setFilterPeriod(e.target.value);
-                    const now = new Date();
-                    if (e.target.value === "daily") {
-                      setFilterDate(now.toISOString().slice(0, 10));
-                    } else if (e.target.value === "monthly") {
-                      setFilterDate(now.toISOString().slice(0, 7));
-                    }
-                  }}
-                  className="border p-1 rounded"
-                >
-                  <option value="daily">Daily</option>
-                  <option value="monthly">Monthly</option>
-                </select>
-              </label>
+              <div className="flex flex-row border p-2 rounded">
+                {/* Period Filter */}
+                <label className="flex items-center">
+                  <span className="mr-2 font-medium">Period:</span>
+                  <select
+                    value={filterPeriod}
+                    onChange={(e) => {
+                      setFilterPeriod(e.target.value);
+                      const now = new Date();
+                      if (e.target.value === "daily") {
+                        setFilterDate(now.toISOString().slice(0, 10));
+                      } else if (e.target.value === "monthly") {
+                        setFilterDate(now.toISOString().slice(0, 7));
+                      }
+                    }}
+                    className="border p-1 rounded"
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </label>
 
-              {/* Date Filter */}
-              <label className="flex items-center">
-                <span className="mr-2 font-medium">Date:</span>
-                <input
-                  type={getDateInputType()}
-                  value={filterDate}
-                  onChange={(e) => setFilterDate(e.target.value)}
-                  className="border p-1 rounded"
-                />
-              </label>
+                {/* Date Filter */}
+                <label className="flex items-center">
+                  <span className="mr-2 font-medium">Date:</span>
+                  <input
+                    type={getDateInputType()}
+                    value={filterDate}
+                    onChange={(e) => setFilterDate(e.target.value)}
+                    className="border p-1 rounded"
+                  />
+                </label>
+              </div>
+
+              <div className="flex flex-row border p-2 rounded">
+                {/* Date Range Filter */}
+                <label className="flex items-center">
+                  <span className="mr-2 font-medium">From:</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="border p-1 rounded"
+                  />
+                </label>
+
+                <label className="flex items-center">
+                  <span className="mr-2 font-medium">To:</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="border p-1 rounded"
+                  />
+                </label>
+              </div>
             </div>
 
             {/* Summary & Bulk Approve */}
@@ -334,7 +389,9 @@ function OvertimeList() {
                         onChange={(e) => setBulkApprovalStage(e.target.value)}
                         className="border p-1 rounded"
                       >
-                        <RoleGate allow={["administrator", "manager(production)"]}>
+                        <RoleGate
+                          allow={["administrator", "manager(production)"]}
+                        >
                           <option value="approved(production)">
                             Approved (Production)
                           </option>
@@ -369,8 +426,24 @@ function OvertimeList() {
         </div>
 
         {/* Table section */}
-        <div className="col-span-12 p-4 rounded border border-stone-300">
-          <div className="border border-gray-300 rounded overflow-hidden h-full flex flex-col">
+        <div className="col-span-12 p-4 rounded border border-stone-300 h-auto">
+          <div className="border w-auto h-auto p-2">
+            <button
+              onClick={() => setSortAsc((prev) => !prev)}
+              className="border px-2 py-1 rounded hover:bg-gray-100 flex items-center gap-1"
+            >
+              {sortAsc ? (
+                <>
+                  Ascending <FaSortNumericUp />
+                </>
+              ) : (
+                <>
+                  Descending <FaSortNumericDown />
+                </>
+              )}
+            </button>
+          </div>
+          <div className="border border-gray-300 rounded overflow-hidden h-full flex flex-col h-auto">
             <div className="overflow-y-auto flex-grow">
               <table className="min-w-full h-fit text-sm border-collapse">
                 <thead className="bg-gray-100 sticky top-0 z-10">

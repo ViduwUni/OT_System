@@ -99,12 +99,12 @@ const EmployeeManagement = () => {
                                 {editingId ? (
                                     <span className="flex items-center gap-2">
                                         <MdOutlineSystemUpdateAlt />
-                                        Update User
+                                        Update Employee
                                     </span>
                                 ) : (
                                     <span className="flex items-center gap-2">
                                         <IoMdAddCircleOutline />
-                                        Add User
+                                        Add Employee
                                     </span>
                                 )}
                             </button>
