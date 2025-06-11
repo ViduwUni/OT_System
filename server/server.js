@@ -17,6 +17,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/employee', require('./routes/employeeRoutes'));
 app.use('/api/overtime', require('./routes/overtimeRoutes'));
 app.use('/api/connection', require('./routes/connectionRoutes'));
+app.use('/api/triple-ot', require('./routes/tripleOTRoutes'));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT,'0.0.0.0', () => console.log(`Server running on port ${PORT}`));

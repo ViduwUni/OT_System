@@ -15,6 +15,7 @@ import OvertimeList from "./pages/OvertimeList";
 import OvertimeForm from "./pages/OvertimeForm";
 import MonthlyReport from "./pages/MonthlyReport";
 import ScannerConverter from "./utils/ScannerConverter";
+import TripleOTDate from "./pages/TripleOTDate";
 
 function App() {
   return (
@@ -48,6 +49,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <ScannerConverter />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/tripleOTDates"
+              element={
+                <PrivateRoute>
+                  <TripleOTDate />
                 </PrivateRoute>
               }
             />

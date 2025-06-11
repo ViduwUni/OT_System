@@ -3,6 +3,8 @@ import axios from "axios";
 import TopBar from "../components/TopBar";
 import { AuthContext } from "../context/AuthContext";
 import RoleGate from "../components/RoleGate";
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
 import { IoTime } from "react-icons/io5";
 import { FaSortNumericDown, FaSortNumericUp } from "react-icons/fa";
@@ -135,7 +137,7 @@ function OvertimeList() {
       !editForm.inTime ||
       !editForm.outTime
     ) {
-      alert("Please fill in all required fields.");
+      toast.warning("Please fill in all required fields.");
       return;
     }
 
@@ -160,19 +162,23 @@ function OvertimeList() {
       setEntries((prev) =>
         prev.map((e) => (e._id === editId ? { ...e, ...payload } : e))
       );
+      toast.success("Entry updated successfully!");
       cancelEdit();
     } catch {
-      alert("Failed to save changes.");
+      toast.error("Failed to save changes.");
     }
   };
 
   const handleBulkApprove = async () => {
-    if (
-      !window.confirm(
-        `Are you sure you want to set approval stage to "${bulkApprovalStage}" for all filtered entries?`
-      )
-    )
-      return;
+    const confirm = await Swal.fire({
+      title: "Confirm Bulk Approval",
+      text: `Set approval stage to "${bulkApprovalStage}" for all filtered entries?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, proceed",
+    });
+
+    if (!confirm.isConfirmed) return;
 
     try {
       const updates = filteredEntries.map((entry) =>
@@ -191,19 +197,30 @@ function OvertimeList() {
             : e
         )
       );
-      alert("Bulk approval successful.");
+
+      toast.success("Bulk approval successful!");
     } catch (err) {
-      alert("Bulk approval failed.", err);
+      toast.error("Bulk approval failed.");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this entry?")) return;
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this entry?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
     try {
       await axios.delete(`${API_BASE}/${id}`);
       setEntries(entries.filter((e) => e._id !== id));
+      toast.success("Entry deleted successfully!");
     } catch {
-      alert("Failed to delete entry");
+      toast.error("Failed to delete entry.");
     }
   };
 
@@ -239,6 +256,7 @@ function OvertimeList() {
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); // ✅ Fix here
 
       filtered = filtered.filter((e) => {
         const entryDate = new Date(e.date);
@@ -443,7 +461,7 @@ function OvertimeList() {
               )}
             </button>
           </div>
-          <div className="border border-gray-300 rounded overflow-hidden h-full flex flex-col h-auto">
+          <div className="border border-gray-300 rounded overflow-hidden flex flex-col h-auto">
             <div className="overflow-y-auto flex-grow">
               <table className="min-w-full h-fit text-sm border-collapse">
                 <thead className="bg-gray-100 sticky top-0 z-10">

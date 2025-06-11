@@ -132,7 +132,7 @@ export default function Dashboard() {
 
       <div className="px-4 grid gap-3 grid-cols-12">
         {/* Month & Year Selectors */}
-        <div className="col-span-12 flex gap-3 my-4 items-center">
+        <div className="col-span-12 flex gap-3 my-4 items-center border p-4 rounded">
           <label>
             Year:
             <select

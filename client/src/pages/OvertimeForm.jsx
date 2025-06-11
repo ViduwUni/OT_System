@@ -25,6 +25,13 @@ function OvertimeForm() {
   const [submitError, setSubmitError] = useState("");
   const [loading, setLoading] = useState(false);
   const [openIndexes, setOpenIndexes] = useState([]);
+  const [tripleOTDates, setTripleOTDates] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get(`http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/triple-ot`)
+      .then((res) => setTripleOTDates(res.data.map((d) => d.date)));
+  }, []);
 
   // Load saved data and employee list on mount
   useEffect(() => {
@@ -92,21 +99,24 @@ function OvertimeForm() {
   const calculateOT = ({ shift, date, inTime, outTime }) => {
     if (!date || !inTime || !outTime)
       return { ot_normal_hours: 0, ot_double_hours: 0, ot_triple_hours: 0 };
-    const inDateTime =
-      typeof inTime === "string"
-        ? combineDateTime(date, inTime)
-        : new Date(inTime);
-    let outDateTime =
-      typeof outTime === "string"
-        ? combineDateTime(date, outTime)
-        : new Date(outTime);
+
+    const inDateTime = combineDateTime(date, inTime);
+    let outDateTime = combineDateTime(date, outTime);
     if (!inDateTime || !outDateTime)
       return { ot_normal_hours: 0, ot_double_hours: 0, ot_triple_hours: 0 };
     outDateTime = fixOutTimeNextDay(inDateTime, outDateTime);
 
-    const day = inDateTime.getDay();
     const totalHours = (outDateTime - inDateTime) / 3600000;
 
+    if (tripleOTDates.includes(date)) {
+      return {
+        ot_normal_hours: 0,
+        ot_double_hours: 0,
+        ot_triple_hours: Math.round(totalHours * 4) / 4,
+      };
+    }
+
+    const day = inDateTime.getDay();
     if (day === 0) {
       return {
         ot_normal_hours: 0,
@@ -351,7 +361,8 @@ function OvertimeForm() {
                     ) : (
                       <FaArrowAltCircleRight />
                     )}{" "}
-                    {emp.employee_no || "Select Employee"}-({emp.employee_name || ""})
+                    {emp.employee_no || "Select Employee"}-(
+                    {emp.employee_name || ""})
                   </button>
                   <span className="text-sm text-stone-600 ml-2">
                     ({emp.entries.length}{" "}

@@ -13,6 +13,7 @@ import { GrUserWorker } from "react-icons/gr";
 import { FaWpforms } from "react-icons/fa";
 import { FaClipboardList } from "react-icons/fa";
 import { TbReport } from "react-icons/tb";
+import { MdDateRange } from "react-icons/md";
 import { IoLogOut } from "react-icons/io5";
 
 import {
@@ -84,6 +85,12 @@ export default function SideBar() {
       to: "/scannerConverter",
       title: "Scanner Converter",
       icon: <PiFingerprintBold />,
+      roles: ['administrator', 'manager(hr)', 'supervisor(hr)'],
+    },
+    {
+      to: "/tripleOTDates",
+      title: "Triple OT Dates",
+      icon: <MdDateRange />,
       roles: ['administrator', 'manager(hr)', 'supervisor(hr)'],
     },
   ];
@@ -304,10 +311,10 @@ export default function SideBar() {
           </div>
 
           <button
-            className="px-2 py-1.5 font-medium bg-stone-200 hover:bg-stone-300 transition-colors rounded"
+            className="flex items-center gap-2 px-2 py-1.5 font-medium bg-stone-200 hover:bg-stone-300 transition-colors rounded"
             onClick={logout}
           >
-            Logout
+            Logout <IoLogOut size={20} />
           </button>
         </div>
       </div>
