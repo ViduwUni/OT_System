@@ -17,39 +17,53 @@ export default function Login() {
   const inputRefs = useRef([]);
   const logoRef = useRef(null);
   const buttonRef = useRef(null);
-  // const registerRef = useRef(null);
 
-  // Helper to set input refs safely
   const setRef = (index) => (el) => {
     inputRefs.current[index] = el;
   };
 
-  useEffect(() => {
-  setEmail('demo@demo.com');
-  setPassword('demopassword');
+  const handleSubmit = async (e) => {
+    e?.preventDefault();
+    try {
+      const res = await axios.post(
+        `http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/auth/login`,
+        { email, password }
+      );
+      login(res.data.token);
+      navigate("/dashboard");
+    } catch (err) {
+      alert(err.response?.data?.message || "Login failed");
+    }
+  };
 
-  setTimeout(() => {
-    // Auto-submit after state is updated
-    buttonRef.current.click(); // or call handleSubmit directly if needed
-  }, 200); // short delay to allow state to update
-}, []);
+  useEffect(() => {
+    // Auto-fill credentials
+    setEmail("demo@demo.com");
+    setPassword("demopassword");
+  }, []);
 
   useEffect(() => {
-    // Animate container scale & fade in
+    if (email === "demo@demo.com" && password === "demopassword") {
+      const timer = setTimeout(() => {
+        handleSubmit({ preventDefault: () => {} });
+      }, 600); // slight delay after setting state
+      return () => clearTimeout(timer);
+    }
+  }, [email, password]);
+
+  useEffect(() => {
     gsap.fromTo(
       containerRef.current,
       { scale: 0.8, opacity: 0 },
       { scale: 1, opacity: 1, duration: 0.7, ease: "power3.out" }
     );
 
-    // Animate logo sliding from right
     gsap.fromTo(
       logoRef.current,
       { x: 100, opacity: 0 },
       { x: 0, opacity: 1, duration: 1, ease: "power3.out", delay: 0.3 }
     );
 
-    // Animate inputs scale & fade staggered
     gsap.fromTo(
       inputRefs.current,
       { scale: 0.9, opacity: 0 },
@@ -63,7 +77,6 @@ export default function Login() {
       }
     );
 
-    // Animate login button scale & fade in, ensure on top
     gsap.fromTo(
       buttonRef.current,
       { scale: 0.8, opacity: 0 },
@@ -78,28 +91,7 @@ export default function Login() {
         },
       }
     );
-
-    // Animate register text fade in
-    // gsap.fromTo(
-    //   registerRef.current,
-    //   { opacity: 0 },
-    //   { opacity: 1, duration: 0.7, delay: 1.5 }
-    // );
   }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post(
-        `http://${import.meta.env.VITE_APP_BACKEND_IP}:5000/api/auth/login`,
-        { email, password }
-      );
-      login(res.data.token);
-      navigate("/dashboard");
-    } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
-    }
-  };
 
   return (
     <>
@@ -127,6 +119,7 @@ export default function Login() {
                 ref={setRef(1)}
                 className="p-2 mt-8 rounded-xl border w-full border-[#4A628A] text-[#1A1A1A]"
                 type="email"
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
                 required
@@ -135,6 +128,7 @@ export default function Login() {
                 ref={setRef(2)}
                 className="p-2 rounded-xl border w-full border-[#4A628A] text-[#1A1A1A]"
                 type="password"
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 required
@@ -146,12 +140,6 @@ export default function Login() {
               >
                 Login
               </button>
-              {/* <p ref={registerRef} className="text-[#1A1A1A]">
-                Don't have an account?{" "}
-                <Link className="underline text-[#183A57]" to="/register">
-                  Register
-                </Link>
-              </p> */}
             </form>
           </div>
           <div className="w-1/2">
