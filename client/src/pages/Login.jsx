@@ -25,6 +25,16 @@ export default function Login() {
   };
 
   useEffect(() => {
+  setEmail('demo@demo.com');
+  setPassword('demopassword');
+
+  setTimeout(() => {
+    // Auto-submit after state is updated
+    buttonRef.current.click(); // or call handleSubmit directly if needed
+  }, 200); // short delay to allow state to update
+}, []);
+
+  useEffect(() => {
     // Animate container scale & fade in
     gsap.fromTo(
       containerRef.current,
